@@ -2160,13 +2160,21 @@ body:has(a:hover, button:hover) .custom-cursor {
     display: flex;
     overflow-x: auto;
     gap: 8px;
-    padding: 0 20px 8px;
+    padding: 4px 20px 12px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    margin-bottom: 24px;
   }
   .menu-filter::-webkit-scrollbar { display: none; }
-  .filter-btn { white-space: nowrap; flex-shrink: 0; font-size: 13px; padding: 8px 14px; }
+  .filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 8px 16px;
+    min-height: 38px !important;
+  }
 
   /* Section headers */
   .section-title { font-size: clamp(28px, 7vw, 40px); }
