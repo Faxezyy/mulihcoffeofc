@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRIS Manager — Mulih Coffee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brown:       #4a2c0a;
+      --brown-mid:   #7a4418;
+      --brown-light: #c07c3a;
+      --cream:       #fff8ee;
+      --cream-dark:  #f5e8cb;
+      --red:         #e63030;
+      --yellow:      #ffd234;
+      --green:       #2db86c;
+      --purple:      #7c1abd;
+      --purple-light:#f5e8ff;
+      --black:       #1a1008;
+      --shadow:      4px 4px 0px var(--black);
+      --border:      3px solid var(--black);
+      --radius:      12px;
+      --radius-lg:   20px;
+      --font-title:  'Bangers', cursive;
+      --font-body:   'Nunito', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: #1a1008;
+      min-height: 100vh;
+      color: var(--black);
+    }
+
+    /* TOP NAVBAR */
+    .admin-top {
+      background: var(--brown);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 3px solid var(--yellow);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .admin-logo { font-family: var(--font-title); font-size: 24px; color: var(--yellow); }
+    .admin-logo span { font-size: 13px; color: var(--cream-dark); font-family: var(--font-body); font-weight: 600; display: block; line-height: 1.2; }
+    .top-nav { display: flex; gap: 8px; }
+    .top-nav a, .top-nav button {
+      padding: 7px 14px; border-radius: var(--radius);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+      border: 2px solid var(--yellow); background: transparent; color: var(--yellow);
+    }
+    .top-nav a:hover, .top-nav button:hover { background: var(--yellow); color: var(--brown); }
+    .top-nav a.active { background: var(--yellow); color: var(--brown); }
+
+    /* LOGIN SCREEN */
+    #loginScreen {
+      min-height: calc(100vh - 60px); display: flex;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-box {
+      background: var(--cream); border: var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 8px 8px 0 var(--yellow);
+      padding: 40px 36px;
+      width: 100%; max-width: 380px; text-align: center;
+    }
+    .login-logo { font-family: var(--font-title); font-size: 48px; color: var(--purple); margin-bottom: 4px; }
+    .login-title { font-family: var(--font-title); font-size: 26px; color: var(--brown); }
+    .login-sub  { font-size: 13px; color: #888; margin-bottom: 28px; }
+    .field-input {
+      width: 100%; padding: 12px 16px; margin-bottom: 12px;
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-body); font-size: 15px;
+      background: white; outline: none;
+    }
+    .field-input:focus { border-color: var(--brown-light); box-shadow: 3px 3px 0 var(--brown-light); }
+    .btn-login {
+      width: 100%; padding: 14px;
+      background: var(--purple); color: white;
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 22px;
+      cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .btn-login:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--black); }
+    .login-error { color: var(--red); font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 20px; }
+
+    /* MAIN PANEL */
+    #mainPanel { display: none; }
+    .panel-body { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--cream); border: var(--border);
+      border-radius: var(--radius); padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .stat-card-icon { font-size: 24px; margin-bottom: 4px; }
+    .stat-card-num  { font-family: var(--font-title); font-size: 28px; color: var(--brown); }
+    .stat-card-label{ font-size: 12px; color: #888; font-weight: 600; }
+    .stat-card.purple { border-color: var(--purple); background: var(--purple-light); }
+    .stat-card.green  { border-color: var(--green);  background: #e8f9ee; }
+    .stat-card.yellow { border-color: #c07c00;       background: #fff8e0; }
+
+    /* TWO COLUMN */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* CARD */
+    .panel-card {
+      background: var(--cream); border: var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-card-header {
+      background: var(--brown); color: var(--yellow);
+      padding: 14px 20px; font-family: var(--font-title); font-size: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-card-body { padding: 20px; }
+
+    /* QRIS DISPLAY */
+    .qris-display-wrap {
+      text-align: center; padding: 8px;
+    }
+    .qris-frame {
+      display: inline-block;
+      background: white; border: var(--border);
+      border-radius: var(--radius-lg); padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .qris-label { font-size: 11px; font-weight: 800; color: #888; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+    .qris-merchant-name { font-family: var(--font-title); font-size: 20px; color: var(--purple); margin: 8px 0 4px; }
+    .qris-amount-display {
+      font-family: var(--font-title); font-size: 26px;
+      color: var(--brown); background: var(--yellow);
+      padding: 6px 16px; border-radius: var(--radius);
+      border: var(--border); display: inline-block;
+      margin: 8px 0;
+    }
+    .qris-apps { font-size: 11px; color: #888; margin-top: 8px; }
+    .qris-code-svg {
+      width: 180px; height: 180px;
+      border: 2px solid var(--cream-dark);
+      border-radius: 8px; margin: 8px 0;
+    }
+
+    /* SALDO INPUT */
+    .saldo-section { margin-bottom: 0; }
+    .saldo-current {
+      background: var(--brown); color: var(--yellow);
+      border-radius: var(--radius); padding: 16px;
+      text-align: center; margin-bottom: 16px;
+      border: var(--border);
+    }
+    .saldo-label-sm { font-size: 12px; font-weight: 700; opacity: 0.8; margin-bottom: 4px; }
+    .saldo-amount { font-family: var(--font-title); font-size: 34px; }
+
+    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .input-prefix-wrap {
+      flex: 1; display: flex; border: var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      background: white;
+    }
+    .input-prefix-wrap:focus-within { border-color: var(--brown-light); box-shadow: 3px 3px 0 var(--brown-light); }
+    .input-prefix { padding: 10px 12px; background: var(--cream-dark); font-weight: 800; font-size: 14px; border-right: var(--border); }
+    .input-prefix-wrap input { flex: 1; border: none; outline: none; padding: 10px 12px; font-family: var(--font-body); font-size: 14px; }
+
+    .btn-set-saldo {
+      padding: 10px 16px; background: var(--brown); color: var(--yellow);
+      border: var(--border); border-radius: var(--radius);
+      font-weight: 800; font-size: 13px; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-set-saldo:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+
+    .quick-amounts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-quick {
+      padding: 6px 12px; background: var(--cream-dark); border: 2px solid var(--black);
+      border-radius: 8px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-quick:hover { background: var(--yellow); }
+
+    /* QRIS SCAN AREA */
+    .scan-tabs {
+      display: flex; gap: 0; margin-bottom: 16px;
+      border: var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .scan-tab {
+      flex: 1; padding: 10px 8px; text-align: center;
+      font-weight: 800; font-size: 13px; cursor: pointer;
+      background: var(--cream-dark); transition: all 0.2s;
+      border-right: 2px solid var(--black);
+    }
+    .scan-tab:last-child { border-right: none; }
+    .scan-tab.active { background: var(--purple); color: white; }
+
+    .scan-panel { display: none; }
+    .scan-panel.active { display: block; }
+
+    /* CAMERA VIEW */
+    .camera-wrap {
+      position: relative; background: #111;
+      border-radius: var(--radius); overflow: hidden;
+      border: var(--border); margin-bottom: 12px;
+    }
+    #cameraVideo {
+      width: 100%; display: block;
+      max-height: 260px; object-fit: cover;
+    }
+    .camera-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .scan-frame {
+      width: 180px; height: 180px;
+      border: 3px solid var(--yellow);
+      border-radius: 12px;
+      position: relative;
+    }
+    .scan-frame::before, .scan-frame::after {
+      content: ''; position: absolute;
+      width: 24px; height: 24px;
+      border-color: var(--yellow); border-style: solid;
+    }
+    .scan-frame::before { top: -3px; left: -3px; border-width: 4px 0 0 4px; }
+    .scan-frame::after  { bottom: -3px; right: -3px; border-width: 0 4px 4px 0; }
+    .scan-line {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: rgba(255,210,52,0.8);
+      animation: scanAnim 2s linear infinite;
+    }
+    @keyframes scanAnim { 0%{top:10%} 50%{top:85%} 100%{top:10%} }
+
+    .camera-status {
+      text-align: center; padding: 10px; font-size: 13px;
+      font-weight: 700; color: var(--brown);
+    }
+
+    .btn-camera, .btn-stop-camera {
+      width: 100%; padding: 12px;
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 18px;
+      cursor: pointer; transition: all 0.2s;
+      margin-bottom: 8px; box-shadow: var(--shadow);
+    }
+    .btn-camera { background: var(--purple); color: white; }
+    .btn-camera:hover { transform: translate(-2px,-2px); }
+    .btn-stop-camera { background: var(--red); color: white; display: none; }
+    .btn-stop-camera:hover { transform: translate(-2px,-2px); }
+
+    /* UPLOAD PANEL */
+    .upload-zone {
+      border: 3px dashed var(--purple);
+      border-radius: var(--radius); padding: 32px 20px;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s; background: white;
+      position: relative; margin-bottom: 12px;
+    }
+    .upload-zone:hover { border-color: var(--brown); background: var(--cream-dark); }
+    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-zone-icon { font-size: 40px; margin-bottom: 8px; }
+    .upload-zone-title { font-weight: 800; font-size: 15px; }
+    .upload-zone-hint { font-size: 12px; color: #888; margin-top: 4px; }
+
+    .scan-preview { margin-bottom: 12px; display: none; }
+    .scan-preview img { width: 100%; border-radius: var(--radius); border: var(--border); max-height: 200px; object-fit: contain; }
+    .btn-clear-scan { font-size: 12px; font-weight: 700; color: var(--red); background: none; border: none; cursor: pointer; margin-top: 4px; }
+
+    .btn-analyze {
+      width: 100%; padding: 12px;
+      background: var(--purple); color: white;
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 20px;
+      cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .btn-analyze:hover:not(:disabled) { transform: translate(-2px,-2px); }
+    .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* RESULT MINI */
+    .scan-result {
+      display: none; margin-top: 12px;
+      border: var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .scan-result.show { display: block; }
+    .scan-result-header {
+      padding: 10px 14px; font-family: var(--font-title); font-size: 18px;
+    }
+    .scan-result-header.ok { background: var(--green); color: white; }
+    .scan-result-header.warn { background: var(--yellow); color: var(--brown); }
+    .scan-result-header.fail { background: var(--red); color: white; }
+    .scan-result-body { padding: 14px; background: white; }
+    .scan-info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--cream-dark); font-size: 13px; }
+    .scan-info-row:last-child { border-bottom: none; }
+    .scan-info-key { color: #888; font-weight: 600; }
+    .scan-info-val { font-weight: 800; }
+    .scan-info-val.ok  { color: var(--green); }
+    .scan-info-val.bad { color: var(--red); }
+
+    /* TRANSACTION LOG */
+    .txn-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+    .txn-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; background: white;
+      border: 2px solid var(--cream-dark); border-radius: var(--radius);
+      transition: all 0.15s;
+    }
+    .txn-item:hover { border-color: var(--brown-light); background: var(--cream); }
+    .txn-icon { font-size: 20px; }
+    .txn-info { flex: 1; }
+    .txn-code { font-weight: 800; font-size: 13px; font-family: monospace; }
+    .txn-time { font-size: 11px; color: #888; }
+    .txn-amount { font-weight: 800; font-size: 14px; color: var(--brown); white-space: nowrap; }
+    .txn-badge {
+      padding: 3px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; border: 2px solid currentColor;
+    }
+    .txn-badge.ok   { color: var(--green); background: #e8f9ee; }
+    .txn-badge.warn { color: #c07c00;      background: #fff8e0; }
+    .txn-badge.fail { color: var(--red);   background: #fde8e8; }
+
+    .empty-state { text-align: center; padding: 32px; color: #888; font-size: 14px; }
+
+    /* LOADING OVERLAY */
+    .loading-overlay {
+      display: none; position: absolute; inset: 0;
+      background: rgba(255,248,238,0.9);
+      border-radius: var(--radius);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
+      z-index: 10;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-spin { font-size: 32px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-label { font-weight: 800; font-size: 14px; color: var(--brown); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--brown); color: var(--yellow);
+      padding: 12px 24px; border-radius: var(--radius);
+      border: var(--border); font-weight: 700; font-size: 14px;
+      transition: transform 0.3s ease; z-index: 9999;
+      white-space: nowrap; box-shadow: var(--shadow);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 2px dashed var(--cream-dark); margin: 16px 0; }
+
+    /* FULL WIDTH CARD */
+    .full-card { margin-bottom: 24px; }
+
+    @media (max-width: 640px) {
+      .panel-body { padding: 16px; }
+      .top-nav a span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="admin-top">
+  <div class="admin-logo">
+    QRIS MANAGER
+    <span>Mulih Coffee — Payment Dashboard</span>
+  </div>
+  <div class="top-nav">
+    <a href="index.html"><span>Home</span></a>
+    <a href="admin.html"><span>Admin</span></a>
+    <a href="payment-verify.html"><span>AI Verify</span></a>
+    <button onclick="doLogout()" id="btnLogout" style="display:none">↩️ Logout</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-title">QRIS MANAGER</div>
+    <div class="login-sub">Login untuk kelola pembayaran QRIS</div>
+    <input type="text" class="field-input" id="loginUser" placeholder="Username" />
+    <input type="password" class="field-input" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn-login" onclick="doLogin()">MASUK</button>
+    <div class="login-error" id="loginError"></div>
+    <div style="font-size:11px;color:#aaa;margin-top:16px;">Silahkan Login</div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="mainPanel">
+  <div class="panel-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-icon">💳</div>
+        <div class="stat-card-num" id="statTotal">0</div>
+        <div class="stat-card-label">Total Transaksi</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-num" id="statVerified">0</div>
+        <div class="stat-card-label">Terverifikasi</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-card-icon">⏳</div>
+        <div class="stat-card-num" id="statPending">0</div>
+        <div class="stat-card-label">Pending</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-card-icon">💰</div>
+        <div class="stat-card-num" id="statSaldo">Rp0</div>
+        <div class="stat-card-label">Saldo QRIS</div>
+      </div>
+    </div>
+
+    <!-- TWO COLUMN -->
+    <div class="two-col">
+
+      <!-- LEFT: QRIS + SALDO -->
+      <div>
+        <!-- QRIS DISPLAY -->
+        <div class="panel-card" style="margin-bottom:20px">
+          <div class="panel-card-header">
+            QRIS Pembayaran
+          </div>
+          <div class="panel-card-body">
+            <div class="qris-display-wrap">
+              <div class="qris-frame">
+                <div class="qris-label">QRIS · Scan to Pay</div>
+                <!-- QRIS SVG placeholder yang sama dengan index.html -->
+                <svg class="qris-code-svg" viewBox="0 0 184 184" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="184" height="184" fill="white"/>
+                  <!-- TL finder -->
+                  <rect x="8" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+                  <rect x="14" y="14" width="44" height="44" rx="2" fill="white"/>
+                  <rect x="20" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+                  <!-- TR finder -->
+                  <rect x="120" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+                  <rect x="126" y="14" width="44" height="44" rx="2" fill="white"/>
+                  <rect x="132" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+                  <!-- BL finder -->
+                  <rect x="8" y="120" width="56" height="56" rx="4" fill="#1a1008"/>
+                  <rect x="14" y="126" width="44" height="44" rx="2" fill="white"/>
+                  <rect x="20" y="132" width="32" height="32" rx="2" fill="#1a1008"/>
+                  <!-- Data modules -->
+                  <rect x="80" y="8" width="8" height="8" fill="#1a1008"/><rect x="92" y="8" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="8" width="8" height="8" fill="#1a1008"/><rect x="80" y="20" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="20" width="8" height="8" fill="#1a1008"/><rect x="80" y="32" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="32" width="8" height="8" fill="#1a1008"/><rect x="104" y="32" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="44" width="8" height="8" fill="#1a1008"/><rect x="80" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="56" width="8" height="8" fill="#1a1008"/><rect x="8" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="20" y="80" width="8" height="8" fill="#1a1008"/><rect x="32" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="80" width="8" height="8" fill="#1a1008"/><rect x="68" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="80" width="8" height="8" fill="#1a1008"/><rect x="104" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="116" y="80" width="8" height="8" fill="#1a1008"/><rect x="128" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="152" y="80" width="8" height="8" fill="#1a1008"/><rect x="164" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="176" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="8" y="92" width="8" height="8" fill="#1a1008"/><rect x="32" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="92" width="8" height="8" fill="#1a1008"/><rect x="80" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="92" width="8" height="8" fill="#1a1008"/><rect x="116" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="140" y="92" width="8" height="8" fill="#1a1008"/><rect x="164" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="8" y="104" width="8" height="8" fill="#1a1008"/><rect x="20" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="44" y="104" width="8" height="8" fill="#1a1008"/><rect x="68" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="104" width="8" height="8" fill="#1a1008"/><rect x="116" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="104" width="8" height="8" fill="#1a1008"/><rect x="56" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="116" width="8" height="8" fill="#1a1008"/><rect x="104" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="116" width="8" height="8" fill="#1a1008"/><rect x="56" y="128" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="128" width="8" height="8" fill="#1a1008"/><rect x="92" y="128" width="8" height="8" fill="#1a1008"/>
+                  <!-- Center logo -->
+                  <rect x="58" y="58" width="28" height="28" rx="4" fill="#c07c3a"/>
+                  <text x="72" y="76" text-anchor="middle" font-size="16" fill="white" font-family="Arial" font-weight="bold">M</text>
+                </svg>
+                <div class="qris-merchant-name">☕ MULIH COFFEE</div>
+                <div class="qris-amount-display" id="qrisAmountDisplay">Rp 0</div>
+                <div class="qris-apps">GoPay · OVO · Dana · ShopeePay · m-Banking</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SALDO MANAGER -->
+        <div class="panel-card">
+          <div class="panel-card-header">
+            💰 Set Saldo QRIS
+          </div>
+          <div class="panel-card-body saldo-section">
+            <div class="saldo-current">
+              <div class="saldo-label-sm">SALDO QRIS SAAT INI</div>
+              <div class="saldo-amount" id="saldoDisplay">Rp 0</div>
+            </div>
+            <div class="input-row">
+              <div class="input-prefix-wrap">
+                <div class="input-prefix">Rp</div>
+                <input type="number" id="saldoInput" placeholder="Masukkan saldo baru..." min="0" />
+              </div>
+              <button class="btn-set-saldo" onclick="setSaldo()">SET</button>
+            </div>
+            <div class="quick-amounts">
+              <span style="font-size:12px;font-weight:700;color:#888;align-self:center">Cepat:</span>
+              <button class="btn-quick" onclick="quickAmount(10000)">10K</button>
+              <button class="btn-quick" onclick="quickAmount(20000)">20K</button>
+              <button class="btn-quick" onclick="quickAmount(25000)">25K</button>
+              <button class="btn-quick" onclick="quickAmount(35000)">35K</button>
+              <button class="btn-quick" onclick="quickAmount(50000)">50K</button>
+              <button class="btn-quick" onclick="quickAmount(100000)">100K</button>
+            </div>
+            <hr class="divider" />
+            <div style="font-size:12px;color:#888;line-height:1.6">
+              💡 <strong>Cara pakai:</strong> Set nominal sesuai total order customer → tampilkan QRIS ke customer → customer scan → upload/scan bukti → AI verifikasi otomatis.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: SCAN VERIFIKASI -->
+      <div class="panel-card" style="position:relative">
+        <div class="panel-card-header">
+          🔍 Verifikasi Bukti Bayar
+          <span style="font-size:13px;font-family:var(--font-body);font-weight:600;opacity:0.8">AI Otomatis</span>
+        </div>
+        <div class="panel-card-body">
+
+          <!-- TABS -->
+          <div class="scan-tabs">
+            <div class="scan-tab active" onclick="switchScanTab('camera', this)">📷 Kamera</div>
+            <div class="scan-tab" onclick="switchScanTab('upload', this)">📁 Upload</div>
+            <div class="scan-tab" onclick="switchScanTab('code', this)">⌨️ Kode</div>
+          </div>
+
+          <!-- CAMERA TAB -->
+          <div class="scan-panel active" id="tabCamera">
+            <div class="camera-wrap" id="cameraWrap" style="display:none">
+              <video id="cameraVideo" autoplay playsinline muted></video>
+              <div class="camera-overlay">
+                <div class="scan-frame">
+                  <div class="scan-line"></div>
+                </div>
+              </div>
+            </div>
+            <div class="camera-status" id="cameraStatus">📷 Arahkan kamera ke bukti pembayaran</div>
+            <button class="btn-camera" id="btnCamera" onclick="startCamera()">📷 BUKA KAMERA</button>
+            <button class="btn-stop-camera" id="btnStopCamera" onclick="stopCamera()">⏹️ STOP KAMERA</button>
+            <button class="btn-analyze" id="btnCaptureAnalyze" style="display:none" onclick="captureAndAnalyze()">📸 FOTO & VERIFIKASI</button>
+          </div>
+
+          <!-- UPLOAD TAB -->
+          <div class="scan-panel" id="tabUpload">
+            <div class="upload-zone" id="scanUploadZone">
+              <input type="file" id="scanFileInput" accept="image/*" onchange="handleScanFile(event)" />
+              <div class="upload-zone-icon">📂</div>
+              <div class="upload-zone-title">Upload Bukti Pembayaran</div>
+              <div class="upload-zone-hint">Screenshot QRIS, foto struk, atau bukti transfer</div>
+            </div>
+            <div class="scan-preview" id="scanPreview">
+              <img id="scanPreviewImg" src="" alt="Preview" />
+              <button class="btn-clear-scan" onclick="clearScanUpload()">✕ Hapus gambar</button>
+            </div>
+            <button class="btn-analyze" id="btnUploadAnalyze" onclick="analyzeUpload()" disabled>🤖 ANALISIS AI</button>
+          </div>
+
+          <!-- CODE TAB -->
+          <div class="scan-panel" id="tabCode">
+            <div style="margin-bottom:12px">
+              <label style="font-weight:800;font-size:13px;display:block;margin-bottom:8px">Kode Verifikasi Order</label>
+              <input type="text" class="field-input" id="codeOrderInput" placeholder="Contoh: VC-A1B2C3D4" style="margin-bottom:8px" />
+              <label style="font-weight:800;font-size:13px;display:block;margin-bottom:8px">Nominal Terbayar (Rp)</label>
+              <div class="input-prefix-wrap" style="margin-bottom:12px">
+                <div class="input-prefix">Rp</div>
+                <input type="number" id="codeNominalInput" placeholder="45000" min="0" />
+              </div>
+              <button class="btn-analyze" onclick="verifyByCode()">✅ VERIFIKASI MANUAL</button>
+            </div>
+          </div>
+
+          <!-- RESULT -->
+          <div class="scan-result" id="scanResultBox">
+            <div class="scan-result-header" id="scanResultHeader">✅ TERVERIFIKASI</div>
+            <div class="scan-result-body">
+              <div class="scan-info-row"><div class="scan-info-key">Nominal Terbaca</div><div class="scan-info-val" id="srNominal">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">Pengirim</div><div class="scan-info-val" id="srSender">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">Waktu</div><div class="scan-info-val" id="srTime">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">Keyakinan AI</div><div class="scan-info-val" id="srConf">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">Status</div><div class="scan-info-val" id="srStatus">–</div></div>
+              <div style="margin-top:10px;font-size:12px;color:#666;line-height:1.5" id="srReasoning">–</div>
+              <div style="margin-top:10px;display:flex;gap:8px">
+                <button style="flex:1;padding:8px;background:var(--green);color:white;border:var(--border);border-radius:8px;font-weight:800;font-size:13px;cursor:pointer" onclick="saveToAdmin()">💾 Simpan</button>
+                <button style="flex:1;padding:8px;background:var(--cream-dark);color:var(--brown);border:var(--border);border-radius:8px;font-weight:800;font-size:13px;cursor:pointer" onclick="resetScan()">🔄 Reset</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Loading overlay -->
+        <div class="loading-overlay" id="scanLoading">
+          <div class="loading-spin">🔍</div>
+          <div class="loading-label">AI sedang menganalisis...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTION LOG (full width) -->
+    <div class="panel-card full-card">
+      <div class="panel-card-header">
+        Log Transaksi QRIS
+        <button onclick="clearTxnLog()" style="background:var(--red);color:white;border:2px solid white;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer">Hapus</button>
+      </div>
+      <div class="panel-card-body" style="padding:16px">
+        <div class="txn-list" id="txnList">
+          <div class="empty-state">Belum ada transaksi QRIS yang diverifikasi</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ============================================
+// SUPABASE
+// ============================================
+const SUPABASE_URL = 'https://ynhrnldpvhjrfmxyyqhc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaHJubGRwdmhqcmZteHl5cWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMjY5MDIsImV4cCI6MjA5MzcwMjkwMn0.WCUyo-3x9SsHn4pgxOALJtxv758n_I_ZT5tnD8w-A-c';
+const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================
+// AUTH
+// ============================================
+const CREDS = { admin: 'mulih2024', manager: 'qris123' };
+let isLoggedIn = false;
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (CREDS[user] && CREDS[user] === pass) {
+    isLoggedIn = true;
+    sessionStorage.setItem('mulihQrisSession', '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainPanel').style.display = 'block';
+    document.getElementById('btnLogout').style.display = 'inline-flex';
+    document.getElementById('loginError').textContent = '';
+    initPanel();
+  } else {
+    document.getElementById('loginError').textContent = '❌ Username atau password salah!';
+  }
+}
+
+function doLogout() {
+  isLoggedIn = false;
+  sessionStorage.removeItem('mulihQrisSession');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainPanel').style.display = 'none';
+  document.getElementById('btnLogout').style.display = 'none';
+  stopCamera();
+}
+
+// ============================================
+// STATE
+// ============================================
+let qrisSaldo = 0;
+let txnLog = [];
+let scanBase64 = null;
+let scanFileType = 'image/jpeg';
+let lastScanResult = null;
+let cameraStream = null;
+
+// ============================================
+// INIT
+// ============================================
+async function initPanel() {
+  // Load transaksi dari Supabase
+  const { data: txData } = await _supa.from('qris_transactions').select('*').order('created_at', { ascending: false }).limit(50);
+  if (txData) {
+    txnLog = txData.map(t => ({
+      id: t.id, orderCode: t.order_code, nominal: t.nominal,
+      status: t.status, confidence: t.confidence,
+      sender: t.sender, timestamp: t.created_at
+    }));
+  }
+  updateSaldoDisplay();
+  renderStats();
+  renderTxnLog();
+}
+
+// ============================================
+// SALDO
+// ============================================
+function setSaldo() {
+  const val = parseInt(document.getElementById('saldoInput').value);
+  if (!val || val < 0) { showToast('⚠️ Masukkan nominal yang valid!'); return; }
+  qrisSaldo = val;
+  updateSaldoDisplay();
+  showToast(`✅ Saldo QRIS diset ke Rp${val.toLocaleString('id-ID')}`);
+}
+
+function quickAmount(amount) {
+  document.getElementById('saldoInput').value = amount;
+  qrisSaldo = amount;
+  updateSaldoDisplay();
+  showToast(`✅ Saldo QRIS: Rp${amount.toLocaleString('id-ID')}`);
+}
+
+function updateSaldoDisplay() {
+  const fmt = `Rp ${qrisSaldo.toLocaleString('id-ID')}`;
+  document.getElementById('saldoDisplay').textContent = fmt;
+  document.getElementById('qrisAmountDisplay').textContent = fmt;
+  document.getElementById('statSaldo').textContent = qrisSaldo >= 1000000
+    ? `${(qrisSaldo/1000000).toFixed(1)}jt`
+    : qrisSaldo >= 1000 ? `${Math.round(qrisSaldo/1000)}K` : 'Rp'+qrisSaldo;
+}
+
+// ============================================
+// SCAN TABS
+// ============================================
+function switchScanTab(tab, el) {
+  document.querySelectorAll('.scan-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.scan-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  if (tab !== 'camera') stopCamera();
+  document.getElementById('scanResultBox').classList.remove('show');
+}
+
+// ============================================
+// CAMERA
+// ============================================
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('cameraVideo');
+    video.srcObject = cameraStream;
+    document.getElementById('cameraWrap').style.display = 'block';
+    document.getElementById('btnCamera').style.display = 'none';
+    document.getElementById('btnStopCamera').style.display = 'block';
+    document.getElementById('btnCaptureAnalyze').style.display = 'block';
+    document.getElementById('cameraStatus').textContent = '🟢 Kamera aktif — arahkan ke bukti pembayaran';
+  } catch (err) {
+    showToast('❌ Tidak bisa akses kamera. Coba tab Upload!');
+    document.getElementById('cameraStatus').textContent = '❌ Kamera tidak dapat diakses';
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('cameraWrap').style.display = 'none';
+  document.getElementById('btnCamera').style.display = 'block';
+  document.getElementById('btnStopCamera').style.display = 'none';
+  document.getElementById('btnCaptureAnalyze').style.display = 'none';
+  document.getElementById('cameraStatus').textContent = '📷 Arahkan kamera ke bukti pembayaran';
+}
+
+function captureAndAnalyze() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  scanBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+  scanFileType = 'image/jpeg';
+  stopCamera();
+  runScanAnalysis();
+}
+
+// ============================================
+// UPLOAD
+// ============================================
+function handleScanFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  scanFileType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    scanBase64 = ev.target.result.split(',')[1];
+    document.getElementById('scanPreviewImg').src = ev.target.result;
+    document.getElementById('scanPreview').style.display = 'block';
+    document.getElementById('scanUploadZone').style.display = 'none';
+    document.getElementById('btnUploadAnalyze').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearScanUpload() {
+  scanBase64 = null;
+  document.getElementById('scanPreview').style.display = 'none';
+  document.getElementById('scanUploadZone').style.display = 'block';
+  document.getElementById('btnUploadAnalyze').disabled = true;
+  document.getElementById('scanFileInput').value = '';
+}
+
+function analyzeUpload() {
+  if (!scanBase64) return;
+  runScanAnalysis();
+}
+
+// ============================================
+// AI ANALYSIS
+// ============================================
+async function runScanAnalysis() {
+  if (!scanBase64) return;
+
+  document.getElementById('scanResultBox').classList.remove('show');
+  document.getElementById('scanLoading').classList.add('show');
+
+  const saldo = qrisSaldo;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: scanFileType, data: scanBase64 }
+            },
+            {
+              type: 'text',
+              text: `Kamu adalah sistem verifikasi QRIS untuk "Mulih Coffee".
+
+Analisis gambar bukti pembayaran ini. Saldo/nominal yang harus dibayar: Rp${saldo.toLocaleString('id-ID')}.
+
+Jawab HANYA dengan JSON ini (tanpa teks lain):
+{
+  "status": "TERVERIFIKASI/PERLU_REVIEW/DITOLAK",
+  "nominal_terbaca": "nominal dalam Rp atau null",
+  "nominal_sesuai": true/false,
+  "nama_pengirim": "nama atau null",
+  "waktu": "waktu transaksi atau null",
+  "confidence": 0-100,
+  "alasan": "penjelasan singkat"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = data.content?.map(c => c.text || '').join('') || '';
+
+    let result;
+    try {
+      result = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+    } catch {
+      result = {
+        status: 'PERLU_REVIEW', nominal_terbaca: null, nominal_sesuai: false,
+        nama_pengirim: null, waktu: null, confidence: 30,
+        alasan: 'Gagal membaca gambar dengan jelas. Perlu verifikasi manual.'
+      };
+    }
+
+    lastScanResult = { result, saldo, timestamp: Date.now() };
+    showScanResult(result, saldo);
+
+  } catch (err) {
+    showToast('❌ Gagal koneksi ke AI!');
+  } finally {
+    document.getElementById('scanLoading').classList.remove('show');
+  }
+}
+
+function showScanResult(result, saldo) {
+  const box = document.getElementById('scanResultBox');
+  const header = document.getElementById('scanResultHeader');
+  box.classList.add('show');
+
+  if (result.status === 'TERVERIFIKASI') {
+    header.className = 'scan-result-header ok';
+    header.textContent = ' PEMBAYARAN TERVERIFIKASI!';
+  } else if (result.status === 'PERLU_REVIEW') {
+    header.className = 'scan-result-header warn';
+    header.textContent = ' PERLU REVIEW MANUAL';
+  } else {
+    header.className = 'scan-result-header fail';
+    header.textContent = 'PEMBAYARAN DITOLAK';
+  }
+
+  const nom = document.getElementById('srNominal');
+  nom.textContent = result.nominal_terbaca || 'Tidak terbaca';
+  nom.className = 'scan-info-val ' + (result.nominal_sesuai ? 'ok' : 'bad');
+
+  document.getElementById('srSender').textContent = result.nama_pengirim || '–';
+  document.getElementById('srTime').textContent = result.waktu || '–';
+  document.getElementById('srConf').textContent = (result.confidence || 0) + '%';
+
+  const st = document.getElementById('srStatus');
+  st.textContent = result.status;
+  st.className = 'scan-info-val ' + (result.status === 'TERVERIFIKASI' ? 'ok' : 'bad');
+
+  document.getElementById('srReasoning').textContent = ' ' + (result.alasan || '');
+}
+
+// ============================================
+// VERIFY BY CODE (manual)
+// ============================================
+function verifyByCode() {
+  const code = document.getElementById('codeOrderInput').value.trim();
+  const nominal = parseInt(document.getElementById('codeNominalInput').value);
+
+  if (!code) { showToast('Masukkan kode order!'); return; }
+  if (!nominal || nominal <= 0) { showToast('Masukkan nominal!'); return; }
+
+  const matched = nominal === qrisSaldo || Math.abs(nominal - qrisSaldo) <= 500;
+  const result = {
+    status: matched ? 'TERVERIFIKASI' : 'PERLU_REVIEW',
+    nominal_terbaca: `Rp${nominal.toLocaleString('id-ID')}`,
+    nominal_sesuai: matched,
+    nama_pengirim: 'Input manual',
+    waktu: new Date().toLocaleString('id-ID'),
+    confidence: matched ? 95 : 50,
+    alasan: matched ? `Nominal Rp${nominal.toLocaleString('id-ID')} sesuai dengan saldo QRIS.` : `Nominal tidak sesuai. Expected Rp${qrisSaldo.toLocaleString('id-ID')}.`
+  };
+
+  lastScanResult = { result, saldo: qrisSaldo, orderCode: code, timestamp: Date.now() };
+  showScanResult(result, qrisSaldo);
+  document.getElementById('scanResultBox').classList.add('show');
+  document.querySelector('.scan-panel.active .scan-result');
+  // Switch to show result (need to scroll)
+  document.getElementById('scanResultBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ============================================
+// SAVE TO ADMIN
+// ============================================
+async function saveToAdmin() {
+  if (!lastScanResult) return;
+  const { result, saldo, orderCode, timestamp } = lastScanResult;
+
+  const txnId = 'TXN-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+  const txn = {
+    id: txnId, order_code: orderCode || 'QRIS-DIRECT',
+    nominal: saldo, status: result.status,
+    confidence: result.confidence,
+    sender: result.nama_pengirim,
+    created_at: timestamp || Date.now()
+  };
+
+  // Simpan ke Supabase
+  await _supa.from('qris_transactions').insert(txn);
+
+  // Update order status jika ada kode order
+  if (orderCode) {
+    const newStatus = result.status === 'TERVERIFIKASI' ? 'verified' : 'pending';
+    await _supa.from('orders').update({
+      status: newStatus,
+      admin_note: '[QRIS Manager] ' + (result.alasan || '')
+    }).or(`verify_code.eq.${orderCode},order_no.eq.${orderCode}`);
+  }
+
+  // Update local log
+  txnLog.unshift({ id: txnId, orderCode: orderCode || 'QRIS-DIRECT', nominal: saldo, status: result.status, confidence: result.confidence, sender: result.nama_pengirim, timestamp: Date.now() });
+  renderTxnLog();
+  renderStats();
+  showToast('Transaksi berhasil disimpan ke database!');
+}
+
+// ============================================
+// RESET SCAN
+// ============================================
+function resetScan() {
+  scanBase64 = null;
+  lastScanResult = null;
+  document.getElementById('scanResultBox').classList.remove('show');
+  clearScanUpload();
+}
+
+// ============================================
+// RENDER LOG
+// ============================================
+function renderTxnLog() {
+  const list = document.getElementById('txnList');
+  if (!txnLog.length) {
+    list.innerHTML = '<div class="empty-state">Belum ada transaksi QRIS yang diverifikasi</div>';
+    return;
+  }
+  list.innerHTML = txnLog.slice(0, 20).map(t => `
+    <div class="txn-item">
+      <div class="txn-icon">${t.status==='TERVERIFIKASI'?'✅':t.status==='PERLU_REVIEW'?'⚠️':'❌'}</div>
+      <div class="txn-info">
+        <div class="txn-code">${t.orderCode}</div>
+        <div class="txn-time">${new Date(t.timestamp).toLocaleString('id-ID')}</div>
+      </div>
+      <div class="txn-amount">Rp${(t.nominal||0).toLocaleString('id-ID')}</div>
+      <div class="txn-badge ${t.status==='TERVERIFIKASI'?'ok':t.status==='PERLU_REVIEW'?'warn':'fail'}">
+        ${t.status==='TERVERIFIKASI'?'OK':t.status==='PERLU_REVIEW'?'Review':'Tolak'}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================
+// RENDER STATS
+// ============================================
+function renderStats() {
+  document.getElementById('statTotal').textContent = txnLog.length;
+  document.getElementById('statVerified').textContent = txnLog.filter(t => t.status === 'TERVERIFIKASI').length;
+  document.getElementById('statPending').textContent = txnLog.filter(t => t.status === 'PERLU_REVIEW').length;
+  updateSaldoDisplay();
+}
+
+async function clearTxnLog() {
+  if (!confirm('Hapus semua log transaksi?')) return;
+  await _supa.from('qris_transactions').delete().neq('id', '');
+  txnLog = [];
+  renderTxnLog(); renderStats();
+  showToast('🗑️ Log dihapus!');
+}
+
+// ============================================
+// TOAST
+// ============================================
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Auto-login check via sessionStorage
+if (sessionStorage.getItem('mulihQrisSession') === '1') doLogin();
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+
+  <!-- ============ DEV NAV — hapus saat production ============ -->
+  <style>
+    #devNav {
+      position: fixed;
+      bottom: 20px;
+      left: 16px;
+      z-index: 999999;
+      font-family: 'Nunito', sans-serif;
+    }
+    #devNavToggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #4a2c0a;
+      color: #ffd234;
+      border: 3px solid #1a1008;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 #1a1008;
+      transition: transform 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.5px;
+    }
+    #devNavToggle:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #1a1008; }
+    #devNavToggle:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1a1008; }
+    #devNavMenu {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      min-width: 200px;
+    }
+    #devNavMenu.open { display: flex; animation: devNavPop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes devNavPop { from { opacity:0; transform:translateY(8px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+    .devnav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      text-decoration: none;
+      border: 2px solid #1a1008;
+      box-shadow: 2px 2px 0 #1a1008;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .devnav-link:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #1a1008; }
+    .devnav-link.active-page { outline: 2px solid #ffd234; outline-offset: 2px; }
+    .devnav-link.ln-index    { background:#fff8ee; color:#4a2c0a; }
+    .devnav-link.ln-admin    { background:#ffd234; color:#1a1008; }
+    .devnav-link.ln-payment  { background:#2db86c; color:#fff; }
+    .devnav-link.ln-qris     { background:#c07c3a; color:#fff; }
+    /* Mobile: pindah ke kanan bawah kalau ada FAB */
+    @media (max-width: 600px) {
+      #devNav { bottom: 80px; left: 12px; }
+      #devNavToggle { font-size: 11px; padding: 6px 10px; }
+      #devNavMenu { min-width: 170px; }
+      .devnav-link { font-size: 12px; padding: 7px 12px; }
+    }
+  </style>
+
+  <div id="devNav">
+    <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')" aria-label="Dev Navigation">
+      🛠️ DEV NAV
+    </button>
+    <div id="devNavMenu" role="menu">
+      <a href="index.html"          class="devnav-link ln-index"   role="menuitem">Halaman Utama</a>
+      <a href="admin.html"          class="devnav-link ln-admin"   role="menuitem">Login Admin</a>
+      <a href="costumer.html" class="devnav-link ln-payment" role="menuitem">Costumer Login</a>
+      <a href="qris-manager.html"   class="devnav-link ln-qris"    role="menuitem">QRIS Manager</a>
+    </div>
+  </div>
+  <script>
+    // Highlight halaman aktif
+    (function(){
+      var cur = location.pathname.split('/').pop() || 'index.html';
+      var links = document.querySelectorAll('.devnav-link');
+      links.forEach(function(a){
+        if(a.getAttribute('href') === cur) a.classList.add('active-page');
+      });
+      // Tutup menu kalau klik di luar
+      document.addEventListener('click', function(e){
+        if(!document.getElementById('devNav').contains(e.target)){
+          document.getElementById('devNavMenu').classList.remove('open');
+        }
+      });
+    })();
+  </script>
+  <!-- ============ END DEV NAV ============ -->
+
+
+</body>
+</html>

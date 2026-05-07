@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mulih Coffee — Pulih dengan Mulih Coffee</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loader">
+    <div class="loader-cup">☕</div>
+    <div class="loader-text">Brewing Your Experience...</div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+  </div>
+
+  <!-- CURSOR -->
+  <div class="custom-cursor"></div>
+  <div class="cursor-trail"></div>
+
+  <!-- TOPBAR PROMO -->
+  <div class="topbar" id="topbar">
+    <span>🎉 FREE ONGKIR untuk order pertamamu!</span>
+    <span class="topbar-sep">☕</span>
+    <span>Gunakan kode: <strong>MULIHBOSS</strong> diskon 15%</span>
+    <span class="topbar-sep">☕</span>
+    <span>🎉 FREE ONGKIR untuk order pertamamu!</span>
+    <button class="topbar-close" id="topbarClose">✕</button>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <a href="#home" class="nav-logo">
+      <span class="logo-text">MULIH<span class="logo-accent">.</span></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="nav-link active">Home</a></li>
+      <li><a href="#menu" class="nav-link">Menu</a></li>
+      <li><a href="#tentang" class="nav-link">Tentang</a></li>
+      <li><a href="#promo" class="nav-link">Promo</a></li>
+      <li><a href="#lokasi" class="nav-link">Lokasi</a></li>
+      <li><a href="#kontak" class="nav-link">Kontak</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-cart" id="cartBtn" aria-label="Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+      <a href="#order" class="btn-order pop-btn">ORDER SEKARANG!</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-bg-dots"></div>
+    <div class="hero-halftone"></div>
+    <div class="hero-content">
+      <div class="speech-bubble-hero" data-aos="pop">KOPI ENAK, HARGA BERSAHABAT!</div>
+      <h1 class="hero-title" data-aos="slide-up">
+        <span class="hero-line1">PULIH</span>
+        <span class="hero-line2">DENGAN</span>
+        <span class="hero-line3">MULIH <span class="hero-accent">COFFEE</span></span>
+      </h1>
+      <p class="hero-sub" data-aos="fade-in">
+        Karena setiap tegukan adalah perjalanan<br />pulang ke rumah yang hangat ✨
+      </p>
+      <div class="hero-btns" data-aos="bounce-in">
+        <a href="#menu" class="btn-primary pop-btn">LIHAT MENU</a>
+        <a href="#tentang" class="btn-secondary">Kenali Kami →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num" data-count="5000">0</span><span>+</span>
+          <span class="stat-label">Pelanggan Setia</span>
+        </div>
+        <div class="stat-divider">|</div>
+        <div class="stat-item">
+          <span class="stat-num" data-count="30">0</span><span>+</span>
+          <span class="stat-label">Varian Menu</span>
+        </div>
+        <div class="stat-divider">|</div>
+        <div class="stat-item">
+          <span class="stat-num" data-count="4">0</span><span></span>
+          <span class="stat-label">Cabang Kota</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="cup-wrapper">
+        <div class="comic-panel">
+          <div class="panel-zap">POW!</div>
+          <div class="big-cup">
+            <div class="cup-steam">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="cup-body">
+              <div class="cup-label">MULIH</div>
+              <div class="cup-coffee"></div>
+            </div>
+            <div class="cup-base"></div>
+            <div class="cup-handle"></div>
+          </div>
+          <div class="panel-stars">★ ★ ★</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Scroll yuk!</span>
+      <div class="scroll-arrow">↓</div>
+    </div>
+  </section>
+
+  <!-- MARQUEE STRIP -->
+  <div class="marquee-strip">
+    <div class="marquee-track">
+      <span>☕ MULIH COFFEE</span><span>★ KOPI LOKAL TERBAIK</span>
+      <span>☕ PULIH DENGAN MULIH</span><span>★ ORDER SEKARANG</span>
+      <span>☕ GRATIS ONGKIR</span><span>★ 4 CABANG KOTA</span>
+      <span>☕ MULIH COFFEE</span><span>★ KOPI LOKAL TERBAIK</span>
+      <span>☕ PULIH DENGAN MULIH</span><span>★ ORDER SEKARANG</span>
+      <span>☕ GRATIS ONGKIR</span><span>★ 4 CABANG KOTA</span>
+    </div>
+  </div>
+
+  <!-- MENU SECTION -->
+  <section class="menu-section" id="menu">
+    <div class="section-header">
+      <div class="section-tag">PILIHAN TERBAIK</div>
+      <h2 class="section-title">MENU <span class="accent">ANDALAN</span> KITA 🧋</h2>
+      <p class="section-sub">Dari kopi tubruk hingga signature drink yang bikin nagih!</p>
+    </div>
+
+    <div class="menu-filter">
+      <button class="filter-btn active" data-filter="all">Semua</button>
+      <button class="filter-btn" data-filter="kopi">Kopi ☕</button>
+      <button class="filter-btn" data-filter="non-kopi">Non-Kopi 🧃</button>
+      <button class="filter-btn" data-filter="snack">Snack 🍪</button>
+      <button class="filter-btn" data-filter="spesial">Spesial 🌟</button>
+    </div>
+
+    <div class="menu-grid" id="menuGrid">
+      <!-- Cards injected by JS -->
+    </div>
+  </section>
+
+  <!-- TENTANG / ABOUT -->
+  <section class="about-section" id="tentang">
+    <div class="about-comic">
+      <div class="comic-strip">
+        <div class="comic-frame frame1">
+          <div class="frame-caption">AWALNYA...</div>
+          <div class="frame-emoji">👨‍🌾</div>
+          <div class="frame-bubble">Petani kopi lokal penuh semangat!</div>
+        </div>
+        <div class="comic-frame frame2">
+          <div class="frame-caption">KEMUDIAN...</div>
+          <div class="frame-emoji">🔬</div>
+          <div class="frame-bubble">Racikan spesial ditemukan!</div>
+        </div>
+        <div class="comic-frame frame3">
+          <div class="frame-caption">AKHIRNYA!</div>
+          <div class="frame-emoji">🎉</div>
+          <div class="frame-bubble">MULIH COFFEE lahir!</div>
+        </div>
+        <div class="comic-frame frame4 frame-big">
+          <div class="frame-caption">SEKARANG</div>
+          <div class="frame-emoji">🚀</div>
+          <div class="frame-bubble big-bubble">Kopi rakyat<br/>untuk semua!</div>
+          <div class="pow-badge">BOOM!</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-text">
+      <div class="section-tag">TENTANG KAMI</div>
+      <h2 class="section-title">CERITA DI <span class="accent">BALIK</span> SECANGKIR KOPI</h2>
+      <p>Mulih Coffee bukan sekadar kedai kopi biasa. Kami hadir dari cinta mendalam terhadap kopi lokal Indonesia dan kerinduan akan kehangatan rumah.</p>
+      <p>Kata <strong>"Mulih"</strong> dari bahasa Jawa berarti <em>pulang</em> — dan itulah yang kami tawarkan. Setiap tegukan membawamu pulang, memeluk kenangan hangat, memulihkan energi di tengah hari yang sibuk.</p>
+      <div class="about-values">
+        <div class="value-item">
+          <span class="value-icon">🌱</span>
+          <div>
+            <strong>Lokal & Segar</strong>
+            <p>Biji kopi dari petani lokal terpilih</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <span class="value-icon">💚</span>
+          <div>
+            <strong>Ramah Lingkungan</strong>
+            <p>Kemasan 100% daur ulang</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <span class="value-icon">❤️</span>
+          <div>
+            <strong>Penuh Cinta</strong>
+            <p>Setiap cup dibuat dengan passion</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROMO SECTION -->
+  <section class="promo-section" id="promo">
+    <div class="section-header light">
+      <div class="section-tag alt">LIMITED TIME</div>
+      <h2 class="section-title light">PROMO <span class="accent-light">GILA-GILAAN</span> 🔥</h2>
+      <p class="section-sub light">Jangan sampai ketinggalan, stok promo terbatas!</p>
+    </div>
+
+    <div class="promo-cards">
+      <div class="promo-card pc1" data-aos="slide-left">
+        <div class="promo-badge">BEST DEAL</div>
+        <div class="promo-emoji">☕🔥</div>
+        <h3>Buy 2 Get 1</h3>
+        <p>Beli 2 minuman apapun, gratis 1 minuman pilihan!</p>
+        <div class="promo-code">Kode: <strong>MULIH2+1</strong></div>
+        <div class="promo-timer" data-ends="2025-12-31">Berakhir dalam: <span class="timer-count">--:--:--</span></div>
+        <button class="btn-promo pop-btn" onclick="copyCode('MULIH2+1')">Salin Kode!</button>
+      </div>
+      <div class="promo-card pc2" data-aos="pop">
+        <div class="promo-badge flash">FLASH SALE</div>
+        <div class="promo-emoji">⚡💰</div>
+        <h3>Diskon 50%</h3>
+        <p>Untuk pelanggan baru! Semua minuman setengah harga di order pertama.</p>
+        <div class="promo-code">Kode: <strong>MULIHBARU</strong></div>
+        <div class="promo-timer" data-ends="2025-11-30">Berakhir dalam: <span class="timer-count">--:--:--</span></div>
+        <button class="btn-promo pop-btn" onclick="copyCode('MULIHBARU')">Salin Kode!</button>
+      </div>
+      <div class="promo-card pc3" data-aos="slide-right">
+        <div class="promo-badge">LOYAL</div>
+        <div class="promo-emoji">🎁⭐</div>
+        <h3>Program Poin</h3>
+        <p>Kumpulkan poin setiap pembelian, tukar dengan minuman gratis!</p>
+        <div class="promo-code">Daftar via: <strong>App Mulih</strong></div>
+        <div class="promo-timer"><span class="timer-count">Berlaku Selamanya ♾️</span></div>
+        <button class="btn-promo pop-btn" onclick="showToast('Segera hadir! 🚀')">Daftar Sekarang</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW TO ORDER -->
+  <section class="howto-section" id="order">
+    <div class="section-header">
+      <div class="section-tag">MUDAH BANGET!</div>
+      <h2 class="section-title">CARA <span class="accent">ORDER</span> !! </h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-item" data-step="1">
+        <div class="step-num">1</div>
+        <div class="step-icon">📱</div>
+        <h3>Download App</h3>
+        <p>Download aplikasi Mulih Coffee atau order via GoFood & GrabFood</p>
+      </div>
+      <div class="step-arrow">➜</div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">2</div>
+        <div class="step-icon">🛒</div>
+        <h3>Pilih Menu</h3>
+        <p>Pilih menu favoritmu, sesuaikan rasa dan tingkat kemanisan</p>
+      </div>
+      <div class="step-arrow">➜</div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">3</div>
+        <div class="step-icon">💳</div>
+        <h3>Bayar Mudah</h3>
+        <p>Bayar pakai QRIS, e-wallet, atau COD. Semua bisa!</p>
+      </div>
+      <div class="step-arrow">➜</div>
+      <div class="step-item" data-step="4">
+        <div class="step-num">4</div>
+        <div class="step-icon">🚀</div>
+        <h3>NIKMATI!</h3>
+        <p>Pesananmu tiba dalam 30 menit atau dapat voucher!</p>
+      </div>
+    </div>
+    <div class="app-buttons">
+      <button class="app-btn" onclick="showToast('Segera tersedia di App Store! 🍎')">
+        <span>🍎</span> App Store
+      </button>
+      <button class="app-btn" onclick="showToast('Segera tersedia di Play Store! 🤖')">
+        <span>🤖</span> Play Store
+      </button>
+      <a href="#" class="app-btn gofood">
+        <span>🟢</span> GoFood
+      </a>
+      <a href="#" class="app-btn grabfood">
+        <span>🟡</span> GrabFood
+      </a>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testi-section">
+    <div class="section-header">
+      <div class="section-tag">KATA MEREKA</div>
+      <h2 class="section-title">PELANGGAN <span class="accent">BERSUARA</span> 💬</h2>
+    </div>
+    <div class="testi-slider" id="testiSlider">
+      <div class="testi-track" id="testiTrack">
+        <!-- JS Generated -->
+      </div>
+    </div>
+    <div class="testi-nav">
+      <button class="testi-btn" id="testiPrev">◀</button>
+      <div class="testi-dots" id="testiDots"></div>
+      <button class="testi-btn" id="testiNext">▶</button>
+    </div>
+  </section>
+
+  <!-- LOKASI -->
+  <section class="lokasi-section" id="lokasi">
+    <div class="section-header">
+      <div class="section-tag">TEMUKAN KAMI</div>
+      <h2 class="section-title">CABANG <span class="accent">MULIH</span> ☕</h2>
+    </div>
+    <div class="lokasi-grid" id="lokasiGrid">
+      <!-- JS injected -->
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="newsletter-section">
+    <div class="news-content">
+      <div class="news-icon">📧</div>
+      <h2>JANGAN KETINGGALAN PROMO!</h2>
+      <p>Daftarkan email kamu dan dapatkan voucher <strong>Rp20.000</strong> langsung!</p>
+      <form class="news-form" id="newsForm">
+        <div class="news-input-wrap">
+          <input type="email" placeholder="Masukkan email kamu..." id="newsEmail" required />
+          <button type="submit" class="pop-btn">DAFTAR GRATIS!</button>
+        </div>
+      </form>
+      <div class="news-success" id="newsSuccess" style="display:none">
+        🎉 Yeay! Voucher sudah dikirim ke emailmu!
+      </div>
+    </div>
+  </section>
+
+  <!-- KONTAK -->
+  <section class="kontak-section" id="kontak">
+    <div class="section-header">
+      <div class="section-tag">HUBUNGI KAMI</div>
+      <h2 class="section-title">ADA <span class="accent">PERTANYAAN?</span> 🤔</h2>
+    </div>
+    <div class="kontak-grid">
+      <div class="kontak-info">
+        <div class="kontak-item">
+          <span class="kontak-icon">📞</span>
+          <div>
+            <strong>Telepon</strong>
+            <p>+62 812-3456-7890</p>
+          </div>
+        </div>
+        <div class="kontak-item">
+          <span class="kontak-icon">📧</span>
+          <div>
+            <strong>Email</strong>
+            <p>halo@mulihcoffee.id</p>
+          </div>
+        </div>
+        <div class="kontak-item">
+          <span class="kontak-icon">📍</span>
+          <div>
+            <strong>Kantor Pusat</strong>
+            <p>Jl. Kopi Rakyat No. 88<br/>Semarang, Jawa Tengah</p>
+          </div>
+        </div>
+        <div class="kontak-item">
+          <span class="kontak-icon">🕐</span>
+          <div>
+            <strong>Jam Operasional</strong>
+            <p>Senin–Minggu: 07.00 – 22.00 WIB</p>
+          </div>
+        </div>
+        <div class="social-links">
+          <a href="#" class="social-btn ig" title="Instagram">📸 Instagram</a>
+          <a href="#" class="social-btn wa" title="WhatsApp">💬 WhatsApp</a>
+          <a href="#" class="social-btn tt" title="TikTok">🎵 TikTok</a>
+        </div>
+      </div>
+      <form class="kontak-form" id="kontakForm">
+        <h3>Kirim Pesan 💌</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama</label>
+            <input type="text" placeholder="Nama kamu" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="email@kamu.com" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Subjek</label>
+          <select>
+            <option>Pertanyaan Umum</option>
+            <option>Keluhan</option>
+            <option>Kerjasama</option>
+            <option>Franchise</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Pesan</label>
+          <textarea placeholder="Ceritakan keperluanmu..." rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary pop-btn">KIRIM PESAN! 🚀</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-halftone"></div>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">☕ MULIH<span>.</span></div>
+        <p>Pulih dengan Mulih Coffee.<br />Kopi lokal, cita rasa nasional.</p>
+        <div class="footer-social">
+          <a href="#" class="fsoc">📸</a>
+          <a href="#" class="fsoc">💬</a>
+          <a href="#" class="fsoc">🎵</a>
+          <a href="#" class="fsoc">🐦</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Menu</h4>
+        <ul>
+          <li><a href="#menu">Kopi</a></li>
+          <li><a href="#menu">Non-Kopi</a></li>
+          <li><a href="#menu">Snack</a></li>
+          <li><a href="#menu">Spesial</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Perusahaan</h4>
+        <ul>
+          <li><a href="#tentang">Tentang Kami</a></li>
+          <li><a href="#lokasi">Lokasi</a></li>
+          <li><a href="#">Karir</a></li>
+          <li><a href="#">Franchise</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Bantuan</h4>
+        <ul>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Syarat & Ketentuan</a></li>
+          <li><a href="#">Privasi</a></li>
+          <li><a href="#kontak">Hubungi Kami</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Mulih Coffee. Made with Love and Dedication in Indonesia.</p>
+      <p>All rights reserved. Hak Cipta Dilindungi. CO Founder by Jullyus CP.</p>
+    </div>
+  </footer>
+
+  <!-- CART MODAL -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🛒 Keranjangmu</h3>
+        <button class="modal-close" id="cartClose">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">Keranjangmu kosong! 🥺<br/>Yuk pilih menu dulu!</div>
+      </div>
+      <div class="cart-footer" id="cartFooter" style="display:none">
+        <div class="cart-total">Total: <span id="cartTotal">Rp0</span></div>
+        <button class="btn-primary pop-btn" onclick="checkout()">CHECKOUT SEKARANG! 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast"></div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-box checkout-box">
+      <div class="modal-header">
+        <h3>🧾 Checkout</h3>
+        <button class="modal-close" id="checkoutClose">✕</button>
+      </div>
+      <div class="checkout-body">
+        <!-- Order Summary -->
+        <div class="checkout-summary" id="checkoutSummary"></div>
+
+        <!-- Form Data Pelanggan -->
+        <div class="checkout-form-section">
+          <h4>📋 Data Pemesan</h4>
+          <div class="form-group">
+            <label>Nama Lengkap *</label>
+            <input type="text" id="checkoutNama" placeholder="Contoh: Budi Santoso" required />
+          </div>
+          <div class="form-group">
+            <label>No. HP *</label>
+            <input type="tel" id="checkoutHP" placeholder="Contoh: 08123456789" required />
+          </div>
+          <div class="form-group">
+            <label>Tipe Pesanan *</label>
+            <div class="order-type-group">
+              <label class="order-type-btn">
+                <input type="radio" name="orderType" value="dine-in" checked /> 🪑 Dine In
+              </label>
+              <label class="order-type-btn">
+                <input type="radio" name="orderType" value="takeaway" /> 🛍️ Takeaway
+              </label>
+              <label class="order-type-btn">
+                <input type="radio" name="orderType" value="delivery" /> 🚴 Delivery
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="alamatGroup" style="display:none">
+            <label>Alamat Pengiriman *</label>
+            <textarea id="checkoutAlamat" placeholder="Masukkan alamat lengkap..." rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Kode Promo (opsional)</label>
+            <div class="promo-input-wrap">
+              <input type="text" id="checkoutPromo" placeholder="Contoh: MULIHBOSS" />
+              <button type="button" class="btn-apply-promo" onclick="applyPromo()">PAKAI</button>
+            </div>
+            <div class="promo-info" id="promoInfo"></div>
+          </div>
+          <div class="form-group">
+            <label>Catatan (opsional)</label>
+            <input type="text" id="checkoutCatatan" placeholder="Contoh: Kopinya kurang manis ya..." />
+          </div>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="checkout-form-section">
+          <h4>💳 Metode Pembayaran</h4>
+          <div class="payment-methods">
+            <label class="payment-method-btn active" data-method="cash">
+              <input type="radio" name="payMethod" value="cash" checked />
+              <span class="pm-icon">💵</span>
+              <span class="pm-label">Tunai</span>
+            </label>
+            <label class="payment-method-btn" data-method="transfer">
+              <input type="radio" name="payMethod" value="transfer" />
+              <span class="pm-icon">🏦</span>
+              <span class="pm-label">Transfer Bank</span>
+            </label>
+            <label class="payment-method-btn" data-method="qris">
+              <input type="radio" name="payMethod" value="qris" />
+              <span class="pm-icon">📱</span>
+              <span class="pm-label">QRIS</span>
+            </label>
+          </div>
+
+          <!-- Panel QRIS -->
+          <div class="payment-panel" id="panelQris" style="display:none">
+            <div class="qris-box">
+              <div class="qris-title">Scan QR untuk Bayar</div>
+              <div class="qris-code">
+                <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- QR decorative pattern -->
+                  <rect width="140" height="140" fill="white" rx="8"/>
+                  <rect x="8" y="8" width="40" height="40" rx="4" fill="#1a1008"/>
+                  <rect x="13" y="13" width="30" height="30" rx="2" fill="white"/>
+                  <rect x="18" y="18" width="20" height="20" rx="1" fill="#1a1008"/>
+                  <rect x="92" y="8" width="40" height="40" rx="4" fill="#1a1008"/>
+                  <rect x="97" y="13" width="30" height="30" rx="2" fill="white"/>
+                  <rect x="102" y="18" width="20" height="20" rx="1" fill="#1a1008"/>
+                  <rect x="8" y="92" width="40" height="40" rx="4" fill="#1a1008"/>
+                  <rect x="13" y="97" width="30" height="30" rx="2" fill="white"/>
+                  <rect x="18" y="102" width="20" height="20" rx="1" fill="#1a1008"/>
+                  <!-- Data modules -->
+                  <rect x="56" y="8" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="8" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="8" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="20" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="20" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="32" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="32" width="8" height="8" fill="#1a1008"/>
+                  <rect x="8" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="20" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="32" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="44" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="116" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="56" width="8" height="8" fill="#1a1008"/>
+                  <rect x="8" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="32" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="68" width="8" height="8" fill="#1a1008"/>
+                  <rect x="8" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="20" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="44" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="116" y="80" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="92" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="116" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="104" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="80" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="104" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="128" y="116" width="8" height="8" fill="#1a1008"/>
+                  <rect x="56" y="128" width="8" height="8" fill="#1a1008"/>
+                  <rect x="68" y="128" width="8" height="8" fill="#1a1008"/>
+                  <rect x="92" y="128" width="8" height="8" fill="#1a1008"/>
+                  <!-- Center logo -->
+                  <rect x="58" y="58" width="24" height="24" rx="4" fill="#c07c3a"/>
+                  <text x="70" y="74" text-anchor="middle" font-size="14" fill="white" font-family="Arial" font-weight="bold">M</text>
+                </svg>
+              </div>
+              <div class="qris-merchant">Mulih Coffee</div>
+              <div class="qris-nominal" id="qrisNominal">Rp0</div>
+              <div class="qris-note">Scan dengan GoPay, OVO, Dana, atau m-Banking</div>
+            </div>
+          </div>
+
+          <!-- Panel Transfer -->
+          <div class="payment-panel" id="panelTransfer" style="display:none">
+            <div class="transfer-box">
+              <div class="bank-item">
+                <span class="bank-icon">🏦</span>
+                <div class="bank-info">
+                  <div class="bank-name">BCA</div>
+                  <div class="bank-number">1234 5678 90</div>
+                  <div class="bank-holder">a.n. Mulih Coffee Indonesia</div>
+                </div>
+                <button class="btn-copy-bank" onclick="copyBankNum('1234567890')">Salin</button>
+              </div>
+              <div class="bank-item">
+                <span class="bank-icon">🏦</span>
+                <div class="bank-info">
+                  <div class="bank-name">Mandiri</div>
+                  <div class="bank-number">0987 6543 21</div>
+                  <div class="bank-holder">a.n. Mulih Coffee Indonesia</div>
+                </div>
+                <button class="btn-copy-bank" onclick="copyBankNum('0987654321')">Salin</button>
+              </div>
+              <p class="transfer-note">⚠️ Transfer sesuai nominal tepat. Upload bukti transfer — AI akan verifikasi otomatis!</p>
+              <!-- Upload Bukti Transfer -->
+              <div class="upload-bukti-wrap">
+                <div class="upload-label">📎 Upload Bukti Transfer <span style="background:#ffd234;color:#4a2c0a;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;border:1.5px solid #4a2c0a;margin-left:6px;">🤖 AI VERIFY</span></div>
+                <label class="upload-area" id="uploadArea" for="buktiTransfer">
+                  <div class="upload-icon">📸</div>
+                  <div class="upload-text">Klik atau drag foto bukti transfer</div>
+                  <div class="upload-hint">JPG / PNG / max 5MB — AI verifikasi otomatis!</div>
+                  <input type="file" id="buktiTransfer" accept="image/*" style="display:none" onchange="handleBuktiUpload(event)" />
+                </label>
+                <div class="upload-preview" id="uploadPreview" style="display:none">
+                  <img id="previewImg" src="" alt="Bukti Transfer" />
+                  <button class="btn-remove-upload" onclick="removeBukti()">✕ Hapus</button>
+                </div>
+                <!-- AI Status -->
+                <div id="aiVerifyStatus" style="display:none;margin-top:10px;padding:12px 14px;border:3px solid #c07c3a;border-radius:12px;text-align:center;background:white;">
+                  <div id="aiVerifyIcon" style="font-size:28px;margin-bottom:6px;">⏳</div>
+                  <div id="aiVerifyText" style="font-weight:800;font-size:14px;color:#4a2c0a;"></div>
+                  <div id="aiVerifySub" style="font-size:12px;color:#888;margin-top:4px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Total -->
+        <div class="checkout-total-box">
+          <div class="checkout-total-row">
+            <span>Subtotal</span>
+            <span id="coSubtotal">Rp0</span>
+          </div>
+          <div class="checkout-total-row" id="coOngkirRow" style="display:none">
+            <span>Ongkir</span>
+            <span id="coOngkir">Rp5.000</span>
+          </div>
+          <div class="checkout-total-row discount-row" id="coDiskonRow" style="display:none">
+            <span>🎉 Diskon</span>
+            <span id="coDiskon" style="color:var(--green)">-Rp0</span>
+          </div>
+          <div class="checkout-total-row grand-total">
+            <span>TOTAL</span>
+            <span id="coTotal">Rp0</span>
+          </div>
+        </div>
+
+        <button class="btn-primary pop-btn" style="width:100%;margin-top:16px;font-size:18px" onclick="processPayment()">
+          BAYAR SEKARANG! 💳
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT MODAL -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-box receipt-box" id="receiptBox">
+      <div class="receipt-header">
+        <div class="receipt-logo">☕ MULIH COFFEE</div>
+        <div class="receipt-tagline">Pulih dengan Mulih Coffee</div>
+        <div class="receipt-address">Jl. Kopi Rakyat No. 88, Semarang</div>
+        <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+        <div class="receipt-no" id="receiptNo">No: #MC-000000</div>
+        <div class="receipt-date" id="receiptDate"></div>
+        <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+      </div>
+      <div class="receipt-customer" id="receiptCustomer"></div>
+      <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+      <div class="receipt-items" id="receiptItems"></div>
+      <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+      <div class="receipt-totals" id="receiptTotals"></div>
+      <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+      <div class="receipt-payment" id="receiptPayment"></div>
+      <div class="receipt-divider">- - - - - - - - - - - - - - - - -</div>
+      <div class="receipt-footer">
+        <div class="receipt-thanks">🙏 Terima kasih sudah order!</div>
+        <div class="receipt-msg">Semoga harimu makin pulih bersama Mulih Coffee ☕</div>
+        <div class="receipt-social">📸 @mulihcoffee.id</div>
+      </div>
+      <div class="receipt-actions">
+        <button class="btn-print pop-btn" onclick="printReceipt()">🖨️ Print Struk</button>
+        <button class="btn-primary pop-btn" onclick="closeReceipt()">✅ Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFICATION MODAL (muncul di struk untuk transfer/qris) -->
+  <div class="modal-overlay" id="verifyModal">
+    <div class="modal-box verify-box">
+      <div class="modal-header" style="background:var(--brown);color:var(--yellow);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+        <h3>🔐 Verifikasi Pembayaran</h3>
+        <button class="modal-close" onclick="document.getElementById('verifyModal').classList.remove('active')">✕</button>
+      </div>
+      <div class="verify-body">
+        <div class="verify-order-info" id="verifyOrderInfo"></div>
+        <div class="verify-divider"></div>
+        <div class="verify-section">
+          <div class="verify-icon">⏳</div>
+          <div class="verify-title">Menunggu Verifikasi Admin</div>
+          <div class="verify-desc">Pembayaran kamu sedang diproses. Admin akan memverifikasi dalam <strong>5–15 menit</strong>.</div>
+        </div>
+        <div class="verify-code-box">
+          <div class="vc-label">Kode Verifikasi Ordermu</div>
+          <div class="vc-code" id="vcCode">–</div>
+          <div class="vc-hint">Simpan kode ini! Gunakan untuk cek status order kamu.</div>
+          <button class="btn-copy-bank" onclick="copyVerifyCode()" style="width:100%;margin-top:8px;">📋 Salin Kode</button>
+        </div>
+        <div class="verify-divider"></div>
+        <div class="verify-section">
+          <div class="verify-title" style="font-size:15px">🔍 Cek Status Order</div>
+          <div class="verify-input-wrap">
+            <input type="text" id="checkCodeInput" placeholder="Masukkan kode verifikasi..." />
+            <button class="btn-apply-promo" onclick="checkOrderStatus()">CEK</button>
+          </div>
+          <div class="verify-result" id="verifyResult"></div>
+        </div>
+        <button class="btn-primary pop-btn" style="width:100%;margin-top:16px" onclick="document.getElementById('verifyModal').classList.remove('active');showToast('✅ Pesanan dicatat! Tunggu verifikasi admin ya.')">
+          OK, Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING ACTION -->
+  <div class="fab-wrapper">
+    <button class="fab-main" id="fabMain" aria-label="Actions">☕</button>
+    <div class="fab-options" id="fabOptions">
+      <a href="https://wa.me/6281234567890" class="fab-option" title="WhatsApp">💬</a>
+      <a href="#order" class="fab-option" title="Order">🛒</a>
+      <a href="#lokasi" class="fab-option" title="Lokasi">📍</a>
+    </div>
+  </div>
+
+  <!-- BACK TO TOP -->
+  <button class="back-top" id="backTop" aria-label="Back to top">⬆</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+
+  <!-- ============ DEV NAV — hapus saat production ============ -->
+  <style>
+    #devNav {
+      position: fixed;
+      bottom: 20px;
+      left: 16px;
+      z-index: 999999;
+      font-family: 'Nunito', sans-serif;
+    }
+    #devNavToggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #4a2c0a;
+      color: #ffd234;
+      border: 3px solid #1a1008;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 #1a1008;
+      transition: transform 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.5px;
+    }
+    #devNavToggle:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #1a1008; }
+    #devNavToggle:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1a1008; }
+    #devNavMenu {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      min-width: 200px;
+    }
+    #devNavMenu.open { display: flex; animation: devNavPop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes devNavPop { from { opacity:0; transform:translateY(8px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+    .devnav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      text-decoration: none;
+      border: 2px solid #1a1008;
+      box-shadow: 2px 2px 0 #1a1008;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .devnav-link:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #1a1008; }
+    .devnav-link.active-page { outline: 2px solid #ffd234; outline-offset: 2px; }
+    .devnav-link.ln-index    { background:#fff8ee; color:#4a2c0a; }
+    .devnav-link.ln-admin    { background:#ffd234; color:#1a1008; }
+    .devnav-link.ln-payment  { background:#2db86c; color:#fff; }
+    .devnav-link.ln-qris     { background:#c07c3a; color:#fff; }
+    /* Mobile: pindah ke kanan bawah kalau ada FAB */
+    @media (max-width: 600px) {
+      #devNav { bottom: 80px; left: 12px; }
+      #devNavToggle { font-size: 11px; padding: 6px 10px; }
+      #devNavMenu { min-width: 170px; }
+      .devnav-link { font-size: 12px; padding: 7px 12px; }
+    }
+  </style>
+
+  <div id="devNav">
+    <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')" aria-label="Dev Navigation">
+      🛠️ DEV NAV
+    </button>
+    <div id="devNavMenu" role="menu">
+      <a href="index.html"        class="devnav-link ln-index"   role="menuitem">Halaman Utama</a>
+      <a href="admin.html"        class="devnav-link ln-admin"   role="menuitem">Login Admin</a>
+      <a href="costumer.html"     class="devnav-link ln-payment" role="menuitem">Costumer Login</a>
+      <a href="qris-manager.html" class="devnav-link ln-qris"    role="menuitem">QRIS Manager</a>
+    </div>
+  </div>
+  <script>
+    // Highlight halaman aktif
+    (function(){
+      var cur = location.pathname.split('/').pop() || 'index.html';
+      var links = document.querySelectorAll('.devnav-link');
+      links.forEach(function(a){
+        if(a.getAttribute('href') === cur) a.classList.add('active-page');
+      });
+      // Tutup menu kalau klik di luar
+      document.addEventListener('click', function(e){
+        if(!document.getElementById('devNav').contains(e.target)){
+          document.getElementById('devNavMenu').classList.remove('open');
+        }
+      });
+    })();
+  </script>
+  <!-- ============ END DEV NAV ============ -->
+
+
+</body>
+</html>

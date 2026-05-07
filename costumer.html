@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mulih Coffee — Akun & Dompet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brown:       #4a2c0a;
+      --brown-mid:   #7a4418;
+      --brown-light: #c07c3a;
+      --cream:       #fff8ee;
+      --cream-dark:  #f5e8cb;
+      --red:         #e63030;
+      --yellow:      #ffd234;
+      --green:       #2db86c;
+      --black:       #1a1008;
+      --white:       #ffffff;
+      --shadow:      4px 4px 0px var(--black);
+      --shadow-lg:   6px 6px 0px var(--black);
+      --border:      3px solid var(--black);
+      --radius:      12px;
+      --radius-lg:   20px;
+      --font-title:  'Bangers', cursive;
+      --font-body:   'Nunito', sans-serif;
+      --font-hand:   'Patrick Hand', cursive;
+      --transition:  all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body { font-family: var(--font-body); background: var(--brown); color: var(--black); min-height: 100vh; overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font-body); }
+    input, textarea, select { font-family: var(--font-body); }
+
+    /* ============ SHARED ============ */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    /* Saat authScreen aktif, body tidak perlu scroll */
+    #authScreen.active { display: flex; }
+    /* dashScreen pakai flex column — override display:block */
+    #dashScreen.active { display: flex; }
+
+    .pop-btn { transition: var(--transition) !important; }
+    .pop-btn:hover { transform: translate(-3px,-3px) scale(1.02) !important; box-shadow: 7px 7px 0 var(--black) !important; }
+    .pop-btn:active { transform: translate(1px,1px) scale(0.98) !important; box-shadow: 2px 2px 0 var(--black) !important; }
+
+    .toast-bar {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+      background: var(--brown); color: var(--yellow);
+      font-family: var(--font-title); font-size: 18px; letter-spacing: 1px;
+      padding: 12px 28px; border-radius: var(--radius); border: var(--border);
+      box-shadow: var(--shadow); z-index: 9999; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+    }
+    .toast-bar.show { transform: translateX(-50%) translateY(0); }
+
+    /* ============ AUTH SCREEN ============ */
+    #authScreen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px 16px;
+      background: var(--brown);
+      position: relative; overflow: hidden;
+    }
+    .auth-bg-dots {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, var(--yellow) 1.5px, transparent 1.5px);
+      background-size: 32px 32px; opacity: 0.08; pointer-events: none;
+    }
+    .auth-card {
+      background: var(--cream);
+      border: var(--border); border-radius: var(--radius-lg);
+      box-shadow: 8px 8px 0 var(--yellow);
+      width: 100%; max-width: 420px;
+      position: relative; z-index: 2;
+      overflow: hidden;
+    }
+    .auth-header {
+      background: var(--brown);
+      padding: 28px 32px 20px;
+      text-align: center;
+    }
+    .auth-logo {
+      font-family: var(--font-title);
+      font-size: 42px; color: var(--yellow);
+      letter-spacing: 3px; line-height: 1;
+    }
+    .auth-logo span { color: var(--red); font-size: 52px; }
+    .auth-tagline {
+      font-family: var(--font-hand);
+      font-size: 13px; color: var(--cream-dark);
+      margin-top: 4px;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      border-bottom: var(--border);
+      background: var(--cream-dark);
+    }
+    .auth-tab {
+      flex: 1; padding: 14px;
+      font-family: var(--font-title); font-size: 18px; letter-spacing: 1px;
+      color: var(--brown-mid); background: none; border: none;
+      border-right: var(--border); cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .auth-tab:last-child { border-right: none; }
+    .auth-tab.active { background: var(--cream); color: var(--brown); }
+
+    /* Forms */
+    .auth-form { padding: 24px 28px 28px; display: none; }
+    .auth-form.active { display: block; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block; font-weight: 800; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--brown); margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%; padding: 12px 14px;
+      border: var(--border); border-radius: var(--radius);
+      font-size: 15px; font-weight: 600;
+      background: var(--white); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus { border-color: var(--brown-light); box-shadow: 3px 3px 0 var(--brown-light); }
+    .form-input.error { border-color: var(--red); }
+
+    .form-hint { font-size: 11px; color: #999; margin-top: 4px; }
+    .form-error { font-size: 12px; font-weight: 700; color: var(--red); margin-top: 4px; min-height: 16px; }
+
+    .btn-auth {
+      width: 100%; padding: 14px;
+      background: var(--brown); color: var(--yellow);
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 22px; letter-spacing: 1px;
+      box-shadow: var(--shadow); margin-top: 8px;
+      transition: var(--transition);
+    }
+    .btn-auth:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--black); }
+    .btn-auth:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--black); }
+
+    .auth-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 16px 0; font-size: 12px; color: #aaa; font-weight: 700;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--cream-dark);
+    }
+
+    .btn-guest {
+      width: 100%; padding: 11px;
+      background: transparent; color: var(--brown-mid);
+      border: 2px solid var(--cream-dark); border-radius: var(--radius);
+      font-weight: 800; font-size: 14px;
+      transition: var(--transition);
+    }
+    .btn-guest:hover { background: var(--cream-dark); border-color: var(--brown-light); }
+
+    .auth-footer {
+      text-align: center; font-size: 11px; color: #aaa;
+      margin-top: 16px;
+    }
+
+    /* Password strength */
+    .pw-strength { margin-top: 6px; }
+    .pw-bar {
+      height: 4px; border-radius: 99px;
+      background: var(--cream-dark);
+      overflow: hidden;
+    }
+    .pw-fill {
+      height: 100%; border-radius: 99px;
+      width: 0; transition: width 0.3s, background 0.3s;
+    }
+    .pw-label { font-size: 11px; font-weight: 700; margin-top: 3px; }
+
+    /* ===== SCAN QR AUTH ===== */
+    .auth-form-scan { padding: 24px 28px 28px; display: none; }
+    .auth-form-scan.active { display: block; }
+    .scan-qr-wrap {
+      border: 3px dashed var(--brown-light);
+      border-radius: var(--radius-lg);
+      padding: 28px 16px; text-align: center;
+      background: white; cursor: pointer;
+      transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    .scan-qr-wrap:hover { border-color: var(--brown); background: var(--cream-dark); }
+    .scan-qr-corner {
+      position: absolute; width: 22px; height: 22px;
+      border: 3px solid var(--brown);
+    }
+    .scan-qr-corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .scan-qr-corner.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+    .scan-qr-corner.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+    .scan-qr-corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+    #scanLine {
+      position: absolute; left: 10%; right: 10%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+      top: 40px; animation: scanAnim 2s ease-in-out infinite;
+      display: none;
+    }
+    @keyframes scanAnim {
+      0%   { top: 40px; opacity: 1; }
+      90%  { top: calc(100% - 40px); opacity: 1; }
+      100% { top: calc(100% - 40px); opacity: 0; }
+    }
+    .scan-qr-icon { font-size: 52px; margin-bottom: 10px; }
+    .scan-qr-title { font-family: var(--font-title); font-size: 22px; color: var(--brown); letter-spacing: 1px; }
+    .scan-qr-sub { font-size: 13px; color: #888; margin-top: 4px; }
+    #scanVideoWrap { display: none; border-radius: var(--radius); overflow: hidden; margin-top: 14px; border: var(--border); position: relative; }
+    #scanVideoWrap video { width: 100%; display: block; max-height: 220px; object-fit: cover; }
+    .scan-result-box {
+      margin-top: 14px; padding: 14px;
+      border: var(--border); border-radius: var(--radius);
+      background: var(--cream-dark);
+      text-align: center; display: none;
+    }
+    .scan-result-box.show { display: block; }
+    .scan-result-badge { font-family: var(--font-title); font-size: 22px; letter-spacing: 1px; }
+    .scan-manual-wrap { margin-top: 14px; }
+
+    /* ===== MEMBERSHIP CARD ===== */
+    .member-card-wrap { padding: 16px 16px 0; }
+    .member-card {
+      background: linear-gradient(135deg, #4a2c0a 0%, #7a4418 50%, #c07c3a 100%);
+      border: var(--border); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 20px 22px; position: relative; overflow: hidden;
+      color: white;
+    }
+    .member-card-bg {
+      position: absolute; inset: 0; opacity: 0.06;
+      background-image: repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%);
+      background-size: 12px 12px;
+    }
+    .member-badge-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .member-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--yellow); color: var(--brown);
+      font-family: var(--font-title); font-size: 13px; letter-spacing: 1px;
+      padding: 4px 12px; border-radius: 99px;
+      border: 2px solid var(--brown);
+    }
+    .member-logo { font-family: var(--font-title); font-size: 20px; color: var(--yellow); letter-spacing: 2px; }
+    .member-id { font-family: monospace; font-size: 11px; opacity: 0.7; letter-spacing: 2px; margin-bottom: 8px; }
+    .member-name { font-family: var(--font-title); font-size: 26px; letter-spacing: 2px; color: var(--yellow); line-height: 1; margin-bottom: 2px; }
+    .member-since { font-size: 11px; opacity: 0.6; }
+    .member-points-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+    .member-points {
+      flex: 1; background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius); padding: 10px 14px;
+    }
+    .member-points-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+    .member-points-val { font-family: var(--font-title); font-size: 22px; color: var(--yellow); letter-spacing: 1px; }
+    .member-tier {
+      background: var(--yellow); color: var(--brown);
+      border: 2px solid var(--brown); border-radius: var(--radius);
+      padding: 10px 14px; text-align: center;
+    }
+    .member-tier-icon { font-size: 22px; }
+    .member-tier-name { font-family: var(--font-title); font-size: 13px; letter-spacing: 1px; line-height: 1; }
+
+    /* ===== SUBSCRIPTION / MEMBERSHIP ===== */
+    .sub-cards { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; }
+    .sub-card {
+      border: var(--border); border-radius: var(--radius);
+      overflow: hidden; position: relative;
+      transition: var(--transition);
+    }
+    .sub-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--black); }
+    .sub-card.active-sub { box-shadow: 0 0 0 3px var(--green); }
+    .sub-card-head {
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sub-card-title { font-family: var(--font-title); font-size: 22px; letter-spacing: 1px; }
+    .sub-card-price { font-family: var(--font-title); font-size: 18px; }
+    .sub-card-body { padding: 0 16px 14px; }
+    .sub-feature { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+    .sub-feature span:first-child { font-size: 16px; }
+    .btn-subscribe {
+      width: 100%; padding: 12px;
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 18px; letter-spacing: 1px;
+      box-shadow: var(--shadow); margin-top: 8px;
+      transition: var(--transition);
+    }
+    .btn-subscribe:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--black); }
+    .active-sub-badge {
+      position: absolute; top: 0; right: 0;
+      background: var(--green); color: white;
+      font-size: 11px; font-weight: 800;
+      padding: 4px 10px; border-radius: 0 var(--radius) 0 var(--radius);
+    }
+
+    /* ===== VOUCHERS ===== */
+    .voucher-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .voucher-card {
+      display: flex; align-items: stretch;
+      border: var(--border); border-radius: var(--radius);
+      overflow: hidden; background: white;
+      box-shadow: 3px 3px 0 var(--black);
+      transition: var(--transition);
+    }
+    .voucher-card:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--black); }
+    .voucher-card.used { opacity: 0.5; }
+    .voucher-left {
+      width: 64px; min-width: 64px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      border-right: 3px dashed var(--black);
+    }
+    .voucher-body { flex: 1; padding: 10px 14px; }
+    .voucher-title { font-family: var(--font-title); font-size: 18px; color: var(--brown); letter-spacing: 1px; }
+    .voucher-desc { font-size: 12px; color: #666; margin-top: 2px; }
+    .voucher-code-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .voucher-code {
+      font-family: monospace; font-size: 13px; font-weight: 800;
+      background: var(--cream-dark); border: 2px solid var(--brown-light);
+      border-radius: 6px; padding: 4px 10px; letter-spacing: 2px;
+    }
+    .btn-copy-voucher {
+      font-size: 11px; font-weight: 800; color: var(--brown);
+      background: var(--yellow); border: 2px solid var(--brown);
+      border-radius: 6px; padding: 4px 8px; cursor: pointer;
+    }
+    .voucher-exp { font-size: 11px; color: #aaa; margin-top: 4px; }
+    .voucher-empty { padding: 32px 18px; text-align: center; font-size: 13px; color: #aaa; font-weight: 700; }
+
+    /* ============ DASHBOARD SCREEN ============ */
+    #dashScreen {
+      background: var(--cream);
+      height: 100vh;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Topbar */
+    .dash-top {
+      background: var(--brown);
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: var(--border);
+      flex-shrink: 0; /* jangan menyusut */
+      z-index: 100;
+    }
+    .dash-logo {
+      font-family: var(--font-title); font-size: 22px;
+      color: var(--yellow); letter-spacing: 2px;
+    }
+    .dash-logo span { color: var(--red); }
+    .dash-top-right { display: flex; align-items: center; gap: 10px; }
+    .dash-user-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 99px; padding: 5px 12px 5px 6px;
+      font-size: 13px; font-weight: 700; color: var(--cream);
+    }
+    .dash-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--yellow); color: var(--brown);
+      font-family: var(--font-title); font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--black);
+    }
+    .btn-logout-sm {
+      background: var(--red); color: var(--white);
+      border: 2px solid var(--black); border-radius: 8px;
+      padding: 6px 12px; font-size: 12px; font-weight: 800;
+      transition: var(--transition);
+    }
+    .btn-logout-sm:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--black); }
+
+    /* Wallet Card */
+    .wallet-section { padding: 20px 16px 0; }
+    .wallet-card {
+      background: var(--brown);
+      border: var(--border); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 24px 24px 20px;
+      position: relative; overflow: hidden;
+    }
+    .wallet-dots {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, var(--yellow) 1px, transparent 1px);
+      background-size: 20px 20px; opacity: 0.07; pointer-events: none;
+    }
+    .wallet-label {
+      font-family: var(--font-hand); font-size: 13px;
+      color: var(--cream-dark); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .wallet-amount {
+      font-family: var(--font-title); font-size: 44px;
+      color: var(--yellow); letter-spacing: 2px;
+      line-height: 1; margin-bottom: 4px;
+    }
+    .wallet-amount-sub {
+      font-size: 12px; color: var(--cream-dark); opacity: 0.7;
+      margin-bottom: 18px;
+    }
+    .wallet-info-row {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .wallet-id {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px; padding: 6px 12px;
+      font-family: monospace; font-size: 13px;
+      color: var(--cream); letter-spacing: 2px;
+    }
+    .wallet-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; color: var(--green);
+    }
+    .wallet-status::before {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+    /* Quick actions */
+    .quick-actions {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-top: 16px;
+    }
+    .quick-btn {
+      background: var(--cream-dark); border: var(--border);
+      border-radius: var(--radius); padding: 14px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 800; color: var(--brown);
+      transition: var(--transition); box-shadow: 3px 3px 0 var(--black);
+      text-align: center; line-height: 1.2;
+    }
+    .quick-btn:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--black); background: var(--yellow); }
+    .quick-btn-icon { font-size: 22px; }
+
+    /* Sections */
+    .section-card {
+      background: var(--white);
+      border: var(--border); border-radius: var(--radius-lg);
+      margin: 16px 16px 0; overflow: hidden;
+      box-shadow: 3px 3px 0 var(--black);
+    }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 2px solid var(--cream-dark);
+      background: var(--cream);
+    }
+    .section-head-title {
+      font-family: var(--font-title); font-size: 18px;
+      color: var(--brown); letter-spacing: 1px;
+    }
+
+    /* Top Up Request */
+    .topup-form { padding: 16px 18px; }
+    .topup-amounts {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 14px;
+    }
+    .topup-chip {
+      padding: 10px 6px; text-align: center;
+      border: var(--border); border-radius: var(--radius);
+      font-weight: 800; font-size: 13px; color: var(--brown);
+      background: var(--cream); cursor: pointer;
+      transition: var(--transition);
+    }
+    .topup-chip:hover, .topup-chip.selected {
+      background: var(--yellow); box-shadow: 2px 2px 0 var(--black);
+      transform: translate(-1px,-1px);
+    }
+
+    .topup-custom-wrap { margin-bottom: 14px; }
+    .topup-custom-label { font-size: 12px; font-weight: 800; color: var(--brown-mid); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .topup-custom-input {
+      width: 100%; padding: 11px 14px;
+      border: var(--border); border-radius: var(--radius);
+      font-size: 16px; font-weight: 800;
+      color: var(--brown); background: var(--cream);
+      outline: none;
+    }
+    .topup-custom-input:focus { border-color: var(--brown-light); box-shadow: 3px 3px 0 var(--brown-light); }
+
+    .topup-note {
+      background: var(--cream-dark); border: 2px solid var(--brown-light);
+      border-radius: var(--radius); padding: 10px 14px;
+      font-size: 12px; font-weight: 600; color: var(--brown-mid);
+      margin-bottom: 14px; line-height: 1.5;
+    }
+
+    .btn-topup-req {
+      width: 100%; padding: 14px;
+      background: var(--green); color: var(--white);
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 20px;
+      box-shadow: var(--shadow); letter-spacing: 1px;
+      transition: var(--transition);
+    }
+    .btn-topup-req:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--black); }
+
+    /* History */
+    .tx-list { padding: 0 4px; }
+    .tx-empty {
+      padding: 32px 18px; text-align: center;
+      font-size: 13px; color: #aaa; font-weight: 700;
+    }
+    .tx-item {
+      display: flex; align-items: center;
+      padding: 12px 18px; gap: 12px;
+      border-bottom: 1px solid var(--cream-dark);
+      transition: background 0.15s;
+    }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-item:hover { background: var(--cream); }
+    .tx-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 2px solid var(--black);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .tx-icon.in  { background: #e8f9ee; }
+    .tx-icon.out { background: #fde8e8; }
+    .tx-icon.pend { background: #fff8e0; }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-desc { font-weight: 800; font-size: 14px; color: var(--brown); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-time { font-size: 11px; color: #999; margin-top: 2px; }
+    .tx-amount { font-family: var(--font-title); font-size: 18px; letter-spacing: 1px; white-space: nowrap; }
+    .tx-amount.in   { color: var(--green); }
+    .tx-amount.out  { color: var(--red); }
+    .tx-amount.pend { color: #c07c00; }
+    .tx-badge {
+      font-size: 10px; font-weight: 800;
+      padding: 2px 7px; border-radius: 99px;
+      border: 1.5px solid currentColor; margin-left: 8px;
+    }
+    .tx-badge.pending  { color: #c07c00; background: #fff8e0; }
+    .tx-badge.verified { color: var(--green); background: #e8f9ee; }
+    .tx-badge.rejected { color: var(--red); background: #fde8e8; }
+
+    /* Profile section */
+    .profile-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .profile-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; background: var(--cream);
+      border: 2px solid var(--cream-dark); border-radius: var(--radius);
+    }
+    .profile-row-icon { font-size: 20px; }
+    .profile-row-info { flex: 1; }
+    .profile-row-label { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+    .profile-row-val { font-size: 15px; font-weight: 700; color: var(--brown); }
+
+    .btn-change-pass {
+      width: 100%; padding: 12px;
+      background: var(--cream-dark); color: var(--brown);
+      border: var(--border); border-radius: var(--radius);
+      font-weight: 800; font-size: 14px;
+      transition: var(--transition);
+    }
+    .btn-change-pass:hover { background: var(--yellow); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--black); }
+
+    /* Bottom nav */
+    .bottom-nav {
+      background: var(--cream); border-top: var(--border);
+      display: flex; z-index: 100;
+      box-shadow: 0 -4px 0 var(--black);
+      flex-shrink: 0; /* jangan menyusut */
+    }
+    .bnav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 10px 6px 12px;
+      font-size: 10px; font-weight: 800; color: var(--brown-mid);
+      text-transform: uppercase; letter-spacing: 0.3px;
+      border: none; background: none; cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+    }
+    .bnav-item.active { color: var(--brown); background: var(--yellow); }
+    .bnav-icon { font-size: 20px; }
+    /* dash-content: ambil sisa ruang, scroll sendiri di dalam */
+    .dash-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 0; /* bottom-nav sudah di luar flow */
+    }
+
+    /* Tab content */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,16,8,0.7);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      background: var(--cream); width: 100%; max-width: 500px;
+      border-radius: 20px 20px 0 0; border: var(--border); border-bottom: none;
+      padding: 0 0 24px;
+      transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.active .modal-sheet { transform: translateY(0); }
+    .modal-drag {
+      width: 48px; height: 4px; border-radius: 99px;
+      background: var(--cream-dark); margin: 12px auto 0;
+    }
+    .modal-title {
+      font-family: var(--font-title); font-size: 22px;
+      color: var(--brown); padding: 14px 20px 10px;
+      border-bottom: 2px solid var(--cream-dark);
+    }
+    .modal-body { padding: 16px 20px; }
+
+    /* Change password form */
+    .modal-btn {
+      width: 100%; padding: 14px;
+      background: var(--brown); color: var(--yellow);
+      border: var(--border); border-radius: var(--radius);
+      font-family: var(--font-title); font-size: 20px;
+      box-shadow: var(--shadow); margin-top: 8px;
+      transition: var(--transition);
+    }
+    .modal-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--black); }
+
+    /* Order shortcut */
+    .goto-order {
+      margin: 16px; padding: 14px 18px;
+      background: var(--red); color: var(--white);
+      border: var(--border); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: var(--transition); cursor: pointer;
+    }
+    .goto-order:hover { transform: translate(-2px,-2px); box-shadow: 8px 8px 0 var(--black); }
+    .goto-order-label { font-family: var(--font-title); font-size: 22px; letter-spacing: 1px; }
+    .goto-order-sub { font-size: 12px; opacity: 0.85; font-weight: 600; margin-top: 2px; }
+    .goto-order-arrow { font-size: 28px; }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .auth-form { padding: 18px 18px 22px; }
+      .wallet-amount { font-size: 36px; }
+      .topup-amounts { grid-template-columns: repeat(3, 1fr); }
+    }
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toastBar" class="toast-bar"></div>
+
+<!-- ==============================
+     SCREEN 1: AUTH (Login / Register)
+================================= -->
+<div id="authScreen" class="screen active">
+  <div class="auth-bg-dots"></div>
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">MULIH<span>.</span></div>
+      <div class="auth-tagline">Dompet Digital Mulih Coffee</div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">MASUK</button>
+      <button class="auth-tab" onclick="switchTab('register')">DAFTAR</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-form active" id="formLogin">
+      <div class="form-group">
+        <label class="form-label">Nomor HP / Username</label>
+        <input class="form-input" id="loginId" type="text" placeholder="08xx atau username kamu" autocomplete="username"/>
+        <div class="form-error" id="loginIdErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        <div class="form-error" id="loginPassErr"></div>
+      </div>
+      <button class="btn-auth pop-btn" onclick="doLogin()">MASUK ☕</button>
+      <div class="auth-divider">atau</div>
+      <button class="btn-guest" onclick="loginAsGuest()">Lanjut sebagai Tamu (tanpa akun)</button>
+      <div class="auth-footer">Belum punya akun? Klik <strong>DAFTAR</strong> di atas ✨</div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-form" id="formRegister">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input class="form-input" id="regNama" type="text" placeholder="Nama kamu" autocomplete="name"/>
+        <div class="form-error" id="regNamaErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nomor HP</label>
+        <input class="form-input" id="regHp" type="tel" placeholder="08xxxxxxxxxx" autocomplete="tel"/>
+        <div class="form-hint">Dipakai sebagai username login</div>
+        <div class="form-error" id="regHpErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (opsional)</label>
+        <input class="form-input" id="regEmail" type="email" placeholder="email@kamu.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="regPass" type="password" placeholder="Min. 6 karakter" oninput="checkPwStrength(this.value)" autocomplete="new-password"/>
+        <div class="pw-strength">
+          <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
+          <div class="pw-label" id="pwLabel" style="color:#aaa">Masukkan password</div>
+        </div>
+        <div class="form-error" id="regPassErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Konfirmasi Password</label>
+        <input class="form-input" id="regPass2" type="password" placeholder="Ulangi password" autocomplete="new-password"/>
+        <div class="form-error" id="regPass2Err"></div>
+      </div>
+      <button class="btn-auth pop-btn" onclick="doRegister()">DAFTAR SEKARANG 🎉</button>
+      <div class="auth-footer">Dengan mendaftar, kamu setuju dengan syarat & ketentuan Mulih Coffee.</div>
+    </div>
+
+
+  </div>
+</div>
+
+
+<!-- ==============================
+     SCREEN 2: DASHBOARD
+================================= -->
+<div id="dashScreen" class="screen">
+  <!-- Top bar -->
+  <div class="dash-top">
+    <div class="dash-logo">MULIH<span>.</span></div>
+    <div class="dash-top-right">
+      <div class="dash-user-chip">
+        <div class="dash-avatar" id="dashAvatar">?</div>
+        <span id="dashUserName">–</span>
+      </div>
+      <button class="btn-logout-sm" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="dash-content">
+    <!-- Tab pane: Dompet -->
+    <div class="tab-pane active" id="paneWallet">
+
+      <!-- Membership Card -->
+      <div class="member-card-wrap">
+        <div class="member-card">
+          <div class="member-card-bg"></div>
+          <div class="member-badge-row">
+            <div class="member-badge">⭐ <span id="memberTierName">BRONZE</span></div>
+            <div class="member-logo">MULIH.</div>
+          </div>
+          <div class="member-id" id="memberCardId">MC-000000</div>
+          <div class="member-name" id="memberCardName">NAMA MEMBER</div>
+          <div class="member-since" id="memberCardSince">Member since –</div>
+          <div class="member-points-row">
+            <div class="member-points">
+              <div class="member-points-label">Poin Reward</div>
+              <div class="member-points-val" id="memberPoints">0 pts</div>
+            </div>
+            <div class="member-tier">
+              <div class="member-tier-icon" id="memberTierIcon">🥉</div>
+              <div class="member-tier-name" id="memberTierLabel">BRONZE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet Card -->
+      <div class="wallet-section">
+        <div class="wallet-card">
+          <div class="wallet-dots"></div>
+          <div class="wallet-label">Saldo Mulih Coffee</div>
+          <div class="wallet-amount" id="walletAmount">Rp0</div>
+          <div class="wallet-amount-sub">Saldo dapat digunakan untuk order</div>
+          <div class="wallet-info-row">
+            <div class="wallet-id" id="walletId">MC-000000</div>
+            <div class="wallet-status">Aktif</div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="quick-actions">
+          <button class="quick-btn pop-btn" onclick="showTopupModal()">
+            <span class="quick-btn-icon">➕</span>
+            Top Up<br>Saldo
+          </button>
+          <button class="quick-btn pop-btn" onclick="switchPane('paneScan');setNav('navScan')">
+            <span class="quick-btn-icon">📷</span>
+            Scan<br>QR
+          </button>
+          <button class="quick-btn pop-btn" onclick="switchPane('paneVoucher');setNav('navVoucher')">
+            <span class="quick-btn-icon">🎫</span>
+            Voucher<br>Saya
+          </button>
+        </div>
+      </div>
+
+      <!-- Go to Order Banner -->
+      <a href="index.html#order" class="goto-order pop-btn">
+        <div class="goto-order-left">
+          <div class="goto-order-label">ORDER SEKARANG!</div>
+          <div class="goto-order-sub">Bayar pakai saldo Mulih Coffee kamu ☕</div>
+        </div>
+        <div class="goto-order-arrow">→</div>
+      </a>
+
+      <!-- Top Up Request -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-head-title">💰 TOP UP SALDO</div>
+        </div>
+        <div class="topup-form">
+          <div class="topup-amounts" id="topupChips">
+            <div class="topup-chip" onclick="selectTopup(10000)">Rp10.000</div>
+            <div class="topup-chip" onclick="selectTopup(20000)">Rp20.000</div>
+            <div class="topup-chip" onclick="selectTopup(50000)">Rp50.000</div>
+            <div class="topup-chip" onclick="selectTopup(100000)">Rp100.000</div>
+            <div class="topup-chip" onclick="selectTopup(200000)">Rp200.000</div>
+            <div class="topup-chip" onclick="selectTopup(500000)">Rp500.000</div>
+          </div>
+          <div class="topup-custom-wrap">
+            <div class="topup-custom-label">Atau nominal lain:</div>
+            <input class="topup-custom-input" id="topupCustom" type="number" placeholder="Rp 0" min="5000" step="1000" oninput="onCustomTopup(this.value)"/>
+          </div>
+          <div class="topup-note">
+            💳 Pilih metode pembayaran top up di bawah — transfer ke bank atau QRIS Mulih Coffee.
+          </div>
+          <button class="btn-topup-req pop-btn" onclick="submitTopup()">📤 PILIH PEMBAYARAN TOP UP</button>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="section-card" style="margin-bottom: 0;">
+        <div class="section-head">
+          <div class="section-head-title">⚡ TRANSAKSI TERBARU</div>
+          <button style="font-size:12px;font-weight:800;color:var(--brown-mid);background:none;border:none;cursor:pointer;" onclick="switchPane('paneHistory');setNav('navHistory')">Lihat Semua</button>
+        </div>
+        <div class="tx-list" id="txRecent"></div>
+      </div>
+    </div>
+
+    <!-- Tab pane: Riwayat -->
+    <div class="tab-pane" id="paneHistory">
+      <div class="section-card" style="margin-top:16px; margin-bottom:0;">
+        <div class="section-head">
+          <div class="section-head-title">📋 SEMUA TRANSAKSI</div>
+        </div>
+        <div class="tx-list" id="txAll"></div>
+      </div>
+    </div>
+
+    <!-- Tab pane: Voucher -->
+    <div class="tab-pane" id="paneVoucher">
+      <div class="section-card" style="margin-top:16px;">
+        <div class="section-head">
+          <div class="section-head-title">🎫 VOUCHER SAYA</div>
+          <button style="font-size:12px;font-weight:800;color:var(--brown-mid);background:none;border:none;cursor:pointer;" onclick="claimDailyVoucher()">+ Klaim Harian</button>
+        </div>
+        <div id="voucherList"></div>
+      </div>
+      <!-- Membership Plans -->
+      <div class="section-card" style="margin-top:16px;margin-bottom:16px;">
+        <div class="section-head">
+          <div class="section-head-title">👑 MEMBERSHIP PLAN</div>
+        </div>
+        <div class="sub-cards">
+          <div class="sub-card" style="background:#fff8ee;" id="subCardFree">
+            <div class="sub-card-head">
+              <div class="sub-card-title">🥉 BRONZE</div>
+              <div class="sub-card-price" style="color:#aaa;">GRATIS</div>
+            </div>
+            <div class="sub-card-body">
+              <div class="sub-feature"><span>✅</span><span>Dompet digital Mulih</span></div>
+              <div class="sub-feature"><span>✅</span><span>Kumpul poin setiap order</span></div>
+              <div class="sub-feature"><span>✅</span><span>1 voucher diskon/bulan</span></div>
+              <div class="sub-feature"><span>❌</span><span>Akses menu eksklusif</span></div>
+            </div>
+            <div style="padding:0 16px 14px;">
+              <button class="btn-subscribe pop-btn" style="background:var(--cream-dark);color:var(--brown);" onclick="activatePlan('bronze')">PAKAI INI (AKTIF)</button>
+            </div>
+          </div>
+          <div class="sub-card" style="background:#fffbe8;" id="subCardSilver">
+            <div class="sub-card-head">
+              <div class="sub-card-title">🥈 SILVER</div>
+              <div class="sub-card-price" style="color:var(--brown-mid);">Rp15.000/bln</div>
+            </div>
+            <div class="sub-card-body">
+              <div class="sub-feature"><span>✅</span><span>Semua fitur Bronze</span></div>
+              <div class="sub-feature"><span>✅</span><span>Diskon 10% setiap order</span></div>
+              <div class="sub-feature"><span>✅</span><span>3 voucher diskon/bulan</span></div>
+              <div class="sub-feature"><span>✅</span><span>Priority order</span></div>
+            </div>
+            <div style="padding:0 16px 14px;">
+              <button class="btn-subscribe pop-btn" style="background:var(--brown);color:var(--yellow);" onclick="activatePlan('silver')">BERLANGGANAN SILVER</button>
+            </div>
+          </div>
+          <div class="sub-card" style="background:linear-gradient(135deg,#fff8ee,#ffd23422);" id="subCardGold">
+            <div class="sub-card-head">
+              <div class="sub-card-title">🥇 GOLD</div>
+              <div class="sub-card-price" style="color:var(--brown-light);">Rp30.000/bln</div>
+            </div>
+            <div class="sub-card-body">
+              <div class="sub-feature"><span>✅</span><span>Semua fitur Silver</span></div>
+              <div class="sub-feature"><span>✅</span><span>Diskon 20% setiap order</span></div>
+              <div class="sub-feature"><span>✅</span><span>Voucher tak terbatas</span></div>
+              <div class="sub-feature"><span>✅</span><span>Free ongkir delivery</span></div>
+              <div class="sub-feature"><span>✅</span><span>Menu eksklusif Gold</span></div>
+            </div>
+            <div style="padding:0 16px 14px;">
+              <button class="btn-subscribe pop-btn" style="background:var(--yellow);color:var(--brown);border-color:var(--brown);" onclick="activatePlan('gold')">BERLANGGANAN GOLD ✨</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab pane: Scan QR (bayar/check-in) -->
+    <div class="tab-pane" id="paneScan">
+      <div class="section-card" style="margin-top:16px;">
+        <div class="section-head">
+          <div class="section-head-title">📷 SCAN QR BAYAR</div>
+        </div>
+        <div style="padding:16px 18px;">
+          <!-- Tampilkan QR member untuk ditunjukkan ke kasir -->
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:12px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">QR Member Kamu</div>
+            <div id="myQrCode" style="display:inline-block;padding:14px;border:var(--border);border-radius:var(--radius);background:white;box-shadow:var(--shadow);"></div>
+            <div style="font-size:12px;color:#888;margin-top:8px;">Tunjukkan ke kasir untuk pembayaran & check-in</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:14px;">
+            <button class="quick-btn pop-btn" style="flex:1;" onclick="openScanPayModal()">
+              <span class="quick-btn-icon">💳</span>
+              Scan &amp; Bayar<br>QRIS
+            </button>
+            <button class="quick-btn pop-btn" style="flex:1;" onclick="openScanCheckin()">
+              <span class="quick-btn-icon">✅</span>
+              Check-in<br>Kasir
+            </button>
+          </div>
+          <div class="topup-note">
+            💡 Scan QRIS merchant untuk bayar langsung pakai saldo Mulih, atau tunjukkan QR kamu ke kasir.
+          </div>
+        </div>
+      </div>
+
+      <!-- Scan QRIS Bayar -->
+      <div class="section-card" style="margin-top:16px;margin-bottom:16px;" id="scanPaySection" style="display:none;">
+        <div class="section-head">
+          <div class="section-head-title">📱 SCAN QRIS BAYAR</div>
+        </div>
+        <div style="padding:16px 18px;">
+          <div class="scan-qr-wrap" id="scanPayWrap" onclick="startPayScan()">
+            <div class="scan-qr-corner tl"></div><div class="scan-qr-corner tr"></div>
+            <div class="scan-qr-corner bl"></div><div class="scan-qr-corner br"></div>
+            <div id="scanPayLine" style="position:absolute;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);display:none;animation:scanAnim 2s ease-in-out infinite;"></div>
+            <div class="scan-qr-icon">🔍</div>
+            <div class="scan-qr-title">Scan QRIS Merchant</div>
+            <div class="scan-qr-sub">Arahkan kamera ke QRIS kasir Mulih Coffee</div>
+          </div>
+          <div id="scanPayVideoWrap" style="display:none;border-radius:var(--radius);overflow:hidden;margin-top:14px;border:var(--border);">
+            <video id="scanPayVideo" autoplay playsinline muted style="width:100%;display:block;max-height:220px;object-fit:cover;"></video>
+            <canvas id="scanPayCanvas" style="display:none;"></canvas>
+          </div>
+          <div id="scanPayResultBox" class="scan-result-box">
+            <div id="scanPayResult">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab pane: Profil -->
+    <div class="tab-pane" id="paneProfile">
+      <div class="section-card" style="margin-top:16px;">
+        <div class="section-head">
+          <div class="section-head-title">👤 PROFIL SAYA</div>
+        </div>
+        <div class="profile-body">
+          <div class="profile-row">
+            <div class="profile-row-icon">☕</div>
+            <div class="profile-row-info">
+              <div class="profile-row-label">Nama</div>
+              <div class="profile-row-val" id="profNama">–</div>
+            </div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">📱</div>
+            <div class="profile-row-info">
+              <div class="profile-row-label">Nomor HP</div>
+              <div class="profile-row-val" id="profHp">–</div>
+            </div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">✉️</div>
+            <div class="profile-row-info">
+              <div class="profile-row-label">Email</div>
+              <div class="profile-row-val" id="profEmail">–</div>
+            </div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">🪙</div>
+            <div class="profile-row-info">
+              <div class="profile-row-label">ID Akun</div>
+              <div class="profile-row-val" id="profId">–</div>
+            </div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">📅</div>
+            <div class="profile-row-info">
+              <div class="profile-row-label">Bergabung sejak</div>
+              <div class="profile-row-val" id="profJoin">–</div>
+            </div>
+          </div>
+          <button class="btn-change-pass" onclick="showChangePwModal()">🔑 Ganti Password</button>
+          <button class="btn-auth pop-btn" style="background:var(--red);font-size:16px;margin-top:4px;" onclick="doLogout()">Keluar dari Akun</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- end dash-content -->
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" id="navWallet" onclick="switchPane('paneWallet');setNav('navWallet')">
+      <span class="bnav-icon">💳</span>Dompet
+    </button>
+    <button class="bnav-item" id="navVoucher" onclick="switchPane('paneVoucher');setNav('navVoucher')">
+      <span class="bnav-icon">🎫</span>Voucher
+    </button>
+    <button class="bnav-item" id="navScan" onclick="switchPane('paneScan');setNav('navScan')">
+      <span class="bnav-icon">📷</span>Scan
+    </button>
+    <button class="bnav-item" id="navProfile" onclick="switchPane('paneProfile');setNav('navProfile')">
+      <span class="bnav-icon">👤</span>Profil
+    </button>
+  </nav>
+</div><!-- end dashScreen -->
+
+
+<!-- Modal: Top Up Konfirmasi -->
+<div class="modal-overlay" id="topupModal" onclick="closeTopupModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-title">💰 Top Up Saldo</div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:8px 0 14px;">
+        <div style="font-family:var(--font-title);font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">Nominal Top Up</div>
+        <div style="font-family:var(--font-title);font-size:48px;color:var(--brown);letter-spacing:2px;" id="modalTopupAmt">Rp0</div>
+      </div>
+
+      <!-- Pilih Metode -->
+      <div style="font-weight:800;font-size:12px;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Pilih Metode Pembayaran:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:var(--border);border-radius:var(--radius);cursor:pointer;background:var(--cream);" id="topupOptTransfer">
+          <input type="radio" name="topupMethod" value="transfer" checked onchange="switchTopupMethod('transfer')" style="accent-color:var(--brown);width:18px;height:18px;"/>
+          <div>
+            <div style="font-weight:800;font-size:14px;">🏦 Transfer Bank</div>
+            <div style="font-size:12px;color:#888;">BCA / Mandiri — upload bukti, AI verifikasi otomatis</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:var(--border);border-radius:var(--radius);cursor:pointer;background:var(--cream);" id="topupOptQris">
+          <input type="radio" name="topupMethod" value="qris" onchange="switchTopupMethod('qris')" style="accent-color:var(--brown);width:18px;height:18px;"/>
+          <div>
+            <div style="font-weight:800;font-size:14px;">📱 QRIS — Auto Verified</div>
+            <div style="font-size:12px;color:#888;">Scan QRIS Mulih Coffee — langsung masuk saldo</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Transfer Section -->
+      <div id="topupTransferSection">
+        <div style="background:var(--cream-dark);border:2px solid var(--brown-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;">
+          <div style="font-weight:800;font-size:13px;color:var(--brown);margin-bottom:8px;">Transfer ke:</div>
+          <div style="font-size:13px;font-weight:700;color:var(--brown-mid);margin-bottom:4px;">🏦 BCA — <span style="font-family:monospace;letter-spacing:2px;">1234 5678 90</span></div>
+          <div style="font-size:13px;font-weight:700;color:var(--brown-mid);">🏦 Mandiri — <span style="font-family:monospace;letter-spacing:2px;">0987 6543 21</span></div>
+          <div style="font-size:11px;color:#888;margin-top:6px;">a.n. Mulih Coffee Indonesia</div>
+        </div>
+        <!-- Upload Bukti -->
+        <label style="display:block;cursor:pointer;" for="topupBuktiInput">
+          <div id="topupUploadArea" style="border:3px dashed var(--brown-light);border-radius:var(--radius);padding:22px;text-align:center;background:white;transition:all 0.2s;">
+            <div style="font-size:32px;margin-bottom:6px;">📸</div>
+            <div style="font-weight:800;font-size:14px;color:var(--brown);">Upload Bukti Transfer</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">AI akan verifikasi otomatis!</div>
+          </div>
+        </label>
+        <input type="file" id="topupBuktiInput" accept="image/*" style="display:none;" onchange="handleTopupBukti(event)"/>
+        <div id="topupBuktiPreview" style="display:none;margin-top:10px;position:relative;">
+          <img id="topupBuktiImg" src="" style="width:100%;border-radius:var(--radius);border:var(--border);max-height:200px;object-fit:contain;"/>
+          <button onclick="removeTopupBukti()" style="position:absolute;top:8px;right:8px;background:var(--red);color:white;border:2px solid var(--black);border-radius:8px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;">✕</button>
+        </div>
+        <div id="topupAIStatus" style="display:none;margin-top:10px;padding:12px 14px;border:var(--border);border-radius:var(--radius);text-align:center;">
+          <div id="topupAIStatusIcon" style="font-size:28px;margin-bottom:6px;">⏳</div>
+          <div id="topupAIStatusText" style="font-weight:800;font-size:14px;"></div>
+          <div id="topupAIStatusSub" style="font-size:12px;color:#888;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <!-- QRIS Section -->
+      <div id="topupQrisSection" style="display:none;text-align:center;">
+        <div style="font-size:12px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Scan QRIS berikut:</div>
+        <div id="topupQrisCode" style="display:inline-block;padding:14px;border:var(--border);border-radius:var(--radius);background:white;box-shadow:var(--shadow);margin-bottom:10px;"></div>
+        <div style="font-size:13px;color:#888;margin-bottom:14px;">Bayar <strong id="topupQrisAmt">Rp0</strong> via GoPay, OVO, Dana, atau m-Banking</div>
+        <div style="background:var(--cream-dark);border:2px solid var(--green);border-radius:var(--radius);padding:10px 14px;">
+          <div style="font-size:22px;margin-bottom:4px;">⚡</div>
+          <div style="font-weight:800;font-size:14px;color:var(--green);">QRIS Auto Verified!</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">Saldo langsung masuk begitu pembayaran berhasil. Tidak perlu upload bukti.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button style="flex:1;padding:12px;background:var(--cream-dark);border:var(--border);border-radius:var(--radius);font-weight:800;" onclick="closeTopupModal()">Batal</button>
+        <button class="modal-btn pop-btn" style="flex:2;margin-top:0;" id="btnConfirmTopup" onclick="confirmTopup()">KONFIRMASI ✅</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ganti Password -->
+<div class="modal-overlay" id="changePwModal" onclick="closeChangePwModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-title">🔑 Ganti Password</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Password Lama</label>
+        <input class="form-input" id="cpOld" type="password" placeholder="••••••••"/>
+        <div class="form-error" id="cpOldErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password Baru</label>
+        <input class="form-input" id="cpNew" type="password" placeholder="Min. 6 karakter"/>
+        <div class="form-error" id="cpNewErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Konfirmasi Password Baru</label>
+        <input class="form-input" id="cpNew2" type="password" placeholder="Ulangi password baru"/>
+        <div class="form-error" id="cpNew2Err"></div>
+      </div>
+      <button class="modal-btn pop-btn" onclick="doChangePassword()">SIMPAN PASSWORD</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- DEV NAV -->
+<style>
+  #devNav { position:fixed;bottom:20px;left:16px;z-index:999999;font-family:'Nunito',sans-serif; }
+  #devNavToggle { display:flex;align-items:center;gap:6px;background:#4a2c0a;color:#ffd234;border:3px solid #1a1008;padding:8px 14px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:3px 3px 0 #1a1008;transition:transform .15s,box-shadow .15s;letter-spacing:.5px; }
+  #devNavToggle:hover { transform:translate(-1px,-1px);box-shadow:4px 4px 0 #1a1008; }
+  #devNavMenu { display:none;flex-direction:column;gap:6px;margin-top:8px;min-width:200px; }
+  #devNavMenu.open { display:flex;animation:devNavPop .2s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes devNavPop { from{opacity:0;transform:translateY(8px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .devnav-link { display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;font-weight:800;font-size:13px;text-decoration:none;border:2px solid #1a1008;box-shadow:2px 2px 0 #1a1008;transition:transform .15s,box-shadow .15s; }
+  .devnav-link:hover { transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1a1008; }
+  .devnav-link.active-page { outline:2px solid #ffd234;outline-offset:2px; }
+  .devnav-link.ln-index   { background:#fff8ee;color:#4a2c0a; }
+  .devnav-link.ln-admin   { background:#ffd234;color:#1a1008; }
+  .devnav-link.ln-payment { background:#2db86c;color:#fff; }
+  .devnav-link.ln-qris    { background:#c07c3a;color:#fff; }
+  .devnav-link.ln-customer{ background:#e63030;color:#fff; }
+  @media(max-width:600px){#devNav{bottom:90px;left:12px;}}
+</style>
+<div id="devNav">
+  <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')">🛠️ DEV NAV</button>
+  <div id="devNavMenu">
+    <a href="index.html"        class="devnav-link ln-index">Halaman Utama</a>
+    <a href="admin.html"        class="devnav-link ln-admin">Login Admin</a>
+    <a href="qris-manager.html" class="devnav-link ln-qris">QRIS Manager</a>
+    <a href="costumer.html"     class="devnav-link ln-customer active-page">Costumer Login</a>
+  </div>
+</div>
+<script>(function(){document.addEventListener('click',function(e){if(!document.getElementById('devNav').contains(e.target))document.getElementById('devNavMenu').classList.remove('open');});})();</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+/* ============================================================
+   SUPABASE CONFIG
+============================================================ */
+const SUPABASE_URL = 'https://ynhrnldpvhjrfmxyyqhc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaHJubGRwdmhqcmZteHl5cWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMjY5MDIsImV4cCI6MjA5MzcwMjkwMn0.WCUyo-3x9SsHn4pgxOALJtxv758n_I_ZT5tnD8w-A-c';
+const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ============================================================
+   DATABASE — Supabase
+============================================================ */
+const DB = {
+  // --- Session (tetap pakai sessionStorage, cukup simpan hp saja) ---
+  getSession() { return JSON.parse(sessionStorage.getItem('mulihSession') || 'null'); },
+  setSession(user) { sessionStorage.setItem('mulihSession', JSON.stringify({ hp: user.hp, nama: user.nama })); },
+  clearSession() { sessionStorage.removeItem('mulihSession'); },
+
+  // --- Ambil user dari Supabase ---
+  async getUser(hp) {
+    const { data, error } = await _supa.from('customers').select('*').eq('hp', hp).single();
+    if (error || !data) return null;
+    // Gabungkan transactions dari tabel terpisah
+    const { data: txs } = await _supa.from('transactions').select('*').eq('customer_hp', hp).order('created_at', { ascending: false });
+    data.transactions = (txs || []).map(t => ({
+      id: t.id, type: t.type, desc: t.desc,
+      amount: t.amount, status: t.status, ts: t.created_at
+    }));
+    data.saldo = Number(data.saldo);
+    data.points = Number(data.points || 0);
+    data.createdAt = Number(data.created_at);
+    return data;
+  },
+
+  // --- Simpan/update user ---
+  async saveUser(user) {
+    const row = {
+      hp: user.hp, id: user.id, nama: user.nama,
+      email: user.email || '-', password: user.password,
+      saldo: user.saldo, points: user.points || 0,
+      member_plan: user.memberPlan || 'bronze',
+      vouchers: user.vouchers || [],
+      last_voucher_claim: user.lastVoucherClaim || null
+    };
+    const { error } = await _supa.from('customers').upsert(row, { onConflict: 'hp' });
+    if (error) console.error('saveUser error:', error);
+    return !error;
+  },
+
+  // --- Cek apakah HP sudah terdaftar ---
+  async userExists(hp) {
+    const { data } = await _supa.from('customers').select('hp').eq('hp', hp).single();
+    return !!data;
+  },
+
+  // --- Tambah transaksi ---
+  async addTransaction(hp, tx) {
+    const { error } = await _supa.from('transactions').insert({
+      id: tx.id, customer_hp: hp,
+      type: tx.type, desc: tx.desc,
+      amount: tx.amount, status: tx.status,
+      created_at: tx.ts || Date.now()
+    });
+    if (error) console.error('addTransaction error:', error);
+    return !error;
+  },
+
+  // --- Update status transaksi ---
+  async updateTransactionStatus(txId, status) {
+    await _supa.from('transactions').update({ status }).eq('id', txId);
+  },
+
+  // --- Simpan topup request ---
+  async saveTopupRequest(req) {
+    const { error } = await _supa.from('topup_requests').insert({
+      id: req.txId, customer_hp: req.userHp,
+      customer_name: req.userName, amount: req.amount,
+      method: req.method, status: req.status,
+      bukti: req.bukti || null,
+      created_at: req.ts || Date.now()
+    });
+    if (error) console.error('saveTopupRequest error:', error);
+  }
+};
+
+/* ============================================================
+   UTILS
+============================================================ */
+function fmtRp(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })
+       + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+function genId() { return 'MC-' + Math.random().toString(36).substring(2,8).toUpperCase(); }
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toastBar');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ============================================================
+   AUTH TABS
+============================================================ */
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((b,i) => {
+    b.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1));
+  });
+  document.getElementById('formLogin').classList.toggle('active', tab==='login');
+  document.getElementById('formRegister').classList.toggle('active', tab==='register');
+}
+
+/* ============================================================
+   PASSWORD STRENGTH
+============================================================ */
+function checkPwStrength(v) {
+  const fill = document.getElementById('pwFill');
+  const label = document.getElementById('pwLabel');
+  let score = 0;
+  if (v.length >= 6) score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const pct = Math.min(100, score * 20);
+  fill.style.width = pct + '%';
+  const levels = [
+    { max:20,  color:'#e63030', text:'Terlalu pendek' },
+    { max:40,  color:'#e63030', text:'Lemah' },
+    { max:60,  color:'#c07c3a', text:'Sedang' },
+    { max:80,  color:'#2db86c', text:'Kuat' },
+    { max:100, color:'#2db86c', text:'Sangat Kuat 💪' },
+  ];
+  const lv = levels.find(l => pct <= l.max) || levels[4];
+  fill.style.background = lv.color;
+  label.textContent = v.length ? lv.text : 'Masukkan password';
+  label.style.color = v.length ? lv.color : '#aaa';
+}
+
+/* ============================================================
+   REGISTER
+============================================================ */
+async function doRegister() {
+  clearErrors(['regNamaErr','regHpErr','regPassErr','regPass2Err']);
+  const nama  = document.getElementById('regNama').value.trim();
+  const hp    = document.getElementById('regHp').value.trim().replace(/\s/g,'');
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+
+  let ok = true;
+  if (!nama) { setError('regNamaErr','Nama tidak boleh kosong'); ok=false; }
+  if (!hp || !/^08[0-9]{8,12}$/.test(hp)) { setError('regHpErr','Nomor HP tidak valid (contoh: 08123456789)'); ok=false; }
+  if (!pass || pass.length < 6) { setError('regPassErr','Password minimal 6 karakter'); ok=false; }
+  if (pass !== pass2) { setError('regPass2Err','Password tidak cocok'); ok=false; }
+  if (!ok) return;
+
+  toast('⏳ Mendaftarkan akun...');
+  const exists = await DB.userExists(hp);
+  if (exists) { setError('regHpErr','Nomor HP sudah terdaftar!'); return; }
+
+  const newUser = {
+    id: genId(), nama, hp, email: email || '-',
+    password: btoa(pass),
+    saldo: 0, points: 0, memberPlan: 'bronze',
+    createdAt: Date.now(), transactions: []
+  };
+  await DB.saveUser(newUser);
+  document.getElementById('regNama').value  = '';
+  document.getElementById('regHp').value    = '';
+  document.getElementById('regEmail').value = '';
+  document.getElementById('regPass').value  = '';
+  document.getElementById('regPass2').value = '';
+  document.getElementById('pwFill').style.width = '0';
+  document.getElementById('pwLabel').textContent = 'Masukkan password';
+  document.getElementById('loginId').value = hp;
+  switchTab('login');
+  toast('🎉 Akun berhasil dibuat! Silakan login, ' + nama + '!');
+}
+
+/* ============================================================
+   LOGIN
+============================================================ */
+async function doLogin() {
+  clearErrors(['loginIdErr','loginPassErr']);
+  const id   = document.getElementById('loginId').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  if (!id)   { setError('loginIdErr','Masukkan nomor HP atau username'); return; }
+  if (!pass) { setError('loginPassErr','Masukkan password'); return; }
+
+  toast('⏳ Memverifikasi...');
+  const user = await DB.getUser(id);
+  if (!user || atob(user.password) !== pass) {
+    setError('loginPassErr','Nomor HP atau password salah ❌');
+    toast('');
+    return;
+  }
+
+  DB.setSession(user);
+  toast('☕ Selamat datang kembali, ' + user.nama + '!');
+  loadDashboard(user);
+}
+
+function loginAsGuest() {
+  toast('👋 Mode tamu — fitur saldo tidak tersedia');
+  window.location.href = 'index.html';
+}
+
+function doLogout() {
+  DB.clearSession();
+  showScreen('authScreen');
+  switchTab('login');
+  toast('Sampai jumpa! ☕');
+}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+function loadDashboard(user) {
+  showScreen('dashScreen');
+  // Scroll konten ke atas setiap kali masuk dashboard
+  const content = document.querySelector('.dash-content');
+  if (content) content.scrollTop = 0;
+  // Reset field login supaya bersih kalau user logout lalu balik
+  document.getElementById('loginId').value   = '';
+  document.getElementById('loginPass').value = '';
+
+  const initial = user.nama.charAt(0).toUpperCase();
+  document.getElementById('dashAvatar').textContent = initial;
+  document.getElementById('dashUserName').textContent = user.nama.split(' ')[0];
+  document.getElementById('walletAmount').textContent = fmtRp(user.saldo);
+  document.getElementById('walletId').textContent = user.id;
+
+  // Membership card
+  const tier = getMemberTier(user);
+  document.getElementById('memberCardId').textContent = user.id;
+  document.getElementById('memberCardName').textContent = user.nama.toUpperCase();
+  document.getElementById('memberCardSince').textContent = 'Member sejak ' + new Date(user.createdAt).toLocaleDateString('id-ID', {month:'long',year:'numeric'});
+  document.getElementById('memberPoints').textContent = (user.points || 0) + ' pts';
+  document.getElementById('memberTierName').textContent = tier.name;
+  document.getElementById('memberTierLabel').textContent = tier.name;
+  document.getElementById('memberTierIcon').textContent = tier.icon;
+
+  // Generate QR member
+  generateMemberQR(user.id);
+
+  // Profile
+  document.getElementById('profNama').textContent  = user.nama;
+  document.getElementById('profHp').textContent    = user.hp;
+  document.getElementById('profEmail').textContent = user.email;
+  document.getElementById('profId').textContent    = user.id;
+  document.getElementById('profJoin').textContent  = fmtTime(user.createdAt);
+
+  renderTransactions(user);
+  renderVouchers(user);
+}
+
+function getMemberTier(user) {
+  const pts = user.points || 0;
+  const plan = user.memberPlan || 'bronze';
+  if (plan === 'gold') return { name: 'GOLD', icon: '🥇' };
+  if (plan === 'silver') return { name: 'SILVER', icon: '🥈' };
+  return { name: 'BRONZE', icon: '🥉' };
+}
+
+/* ============================================================
+   MEMBER QR CODE (simple SVG-based)
+============================================================ */
+function generateMemberQR(id) {
+  const el = document.getElementById('myQrCode');
+  if (!el) return;
+  // Simple visual QR placeholder using the ID text
+  const size = 120;
+  el.innerHTML = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${size}" height="${size}" fill="white"/>
+    <!-- Corner markers -->
+    <rect x="8" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="14" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
+    <rect x="${size-36}" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="${size-30}" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
+    <rect x="8" y="${size-36}" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="14" y="${size-30}" width="16" height="16" rx="2" fill="#1a1008"/>
+    <!-- Data pattern from id hash -->
+    ${generateQRPattern(id, size)}
+    <!-- Center logo -->
+    <rect x="${size/2-12}" y="${size/2-12}" width="24" height="24" rx="4" fill="#c07c3a"/>
+    <text x="${size/2}" y="${size/2+5}" text-anchor="middle" font-size="11" fill="white" font-family="Arial" font-weight="bold">M</text>
+  </svg>`;
+}
+
+function generateQRPattern(id, size) {
+  let rects = '';
+  const hash = id.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+  const cells = [];
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const skip = (r < 3 && c < 3) || (r < 3 && c > 4) || (r > 4 && c < 3);
+      if (!skip && (((hash * (r+1) * (c+1)) % 7) > 3)) cells.push([r,c]);
+    }
+  }
+  const step = (size - 16) / 9;
+  cells.forEach(([r,c]) => {
+    const x = 8 + c * step + step;
+    const y = 8 + r * step + step;
+    rects += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(step-1).toFixed(1)}" height="${(step-1).toFixed(1)}" rx="1" fill="#1a1008"/>`;
+  });
+  return rects;
+}
+
+/* ============================================================
+   SCAN QR — AUTH
+============================================================ */
+let scanStream = null;
+let scanInterval = null;
+
+function startScanCamera() {
+  const videoWrap = document.getElementById('scanVideoWrap');
+  const scanLine = document.getElementById('scanLine');
+  const video = document.getElementById('scanVideo');
+  videoWrap.style.display = 'block';
+  scanLine.style.display = 'block';
+  document.getElementById('scanWrap').style.display = 'none';
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      scanStream = stream;
+      video.srcObject = stream;
+      video.play();
+      scanInterval = setInterval(() => tryScanFrame(video, 'auth'), 800);
+    })
+    .catch(() => {
+      toast('⚠️ Kamera tidak tersedia — pakai input manual di bawah');
+      videoWrap.style.display = 'none';
+      scanLine.style.display = 'none';
+      document.getElementById('scanWrap').style.display = 'block';
+    });
+}
+
+function stopScan() {
+  clearInterval(scanInterval);
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+}
+
+function tryScanFrame(video, mode) {
+  const canvas = document.getElementById(mode === 'auth' ? 'scanCanvas' : 'scanPayCanvas');
+  if (!canvas || video.videoWidth === 0) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  // Simulate QR detection — in real implementation use jsQR library
+  // For demo, detect via canvas pattern
+}
+
+async function doScanLogin() {
+  const id = document.getElementById('scanManualId').value.trim().toUpperCase();
+  if (!id) { setError('scanManualErr','Masukkan ID member dulu!'); return; }
+  // Cari berdasarkan hp atau member id
+  let user = await DB.getUser(id);
+  if (!user) {
+    const { data } = await _supa.from('customers').select('hp').eq('id', id).single();
+    if (data) user = await DB.getUser(data.hp);
+  }
+  if (!user) {
+    document.getElementById('scanResultBox').classList.add('show');
+    document.getElementById('scanResultBadge').textContent = '❌ Member tidak ditemukan';
+    document.getElementById('scanResultBadge').style.color = 'var(--red)';
+    document.getElementById('scanResultMsg').textContent = 'ID atau nomor HP tidak terdaftar.';
+    return;
+  }
+  DB.setSession(user);
+  toast('✅ Login berhasil via scan! Halo ' + user.nama + '!');
+  stopScan();
+  loadDashboard(user);
+}
+
+function startPayScan() {
+  const vw = document.getElementById('scanPayVideoWrap');
+  const video = document.getElementById('scanPayVideo');
+  vw.style.display = 'block';
+  document.getElementById('scanPayLine').style.display = 'block';
+  document.getElementById('scanPayWrap').style.display = 'none';
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      scanStream = stream;
+      video.srcObject = stream;
+      video.play();
+      // Simulate successful scan after 2s for demo
+      setTimeout(() => {
+        stopScan();
+        simulateQrisPaymentScan();
+      }, 2500);
+    })
+    .catch(() => {
+      toast('⚠️ Kamera tidak tersedia');
+      vw.style.display = 'none';
+      document.getElementById('scanPayWrap').style.display = 'block';
+    });
+}
+
+function simulateQrisPaymentScan() {
+  const rb = document.getElementById('scanPayResultBox');
+  rb.classList.add('show');
+  rb.style.background = '#e8f9ee';
+  document.getElementById('scanPayResult').innerHTML = `
+    <div style="font-size:32px">✅</div>
+    <div style="font-family:var(--font-title);font-size:20px;color:var(--green);">QRIS Terdeteksi!</div>
+    <div style="font-size:13px;color:#666;margin-top:6px;">Merchant: Mulih Coffee Indonesia</div>
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:6px;">Masukkan nominal:</div>
+      <input class="form-input" id="scanPayAmt" type="number" placeholder="0" min="1000" style="margin-bottom:10px;"/>
+      <button class="btn-auth pop-btn" style="font-size:16px;padding:12px;" onclick="confirmQrisPayment()">BAYAR SEKARANG ⚡</button>
+    </div>`;
+  document.getElementById('scanPayVideoWrap').style.display = 'none';
+}
+
+async function confirmQrisPayment() {
+  const amt = parseInt(document.getElementById('scanPayAmt').value) || 0;
+  if (amt < 1000) { toast('⚠️ Nominal minimal Rp1.000'); return; }
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+  if (user.saldo < amt) { toast('❌ Saldo tidak cukup! Saldo kamu: ' + fmtRp(user.saldo)); return; }
+  user.saldo -= amt;
+  user.points = (user.points || 0) + Math.floor(amt / 1000);
+  const tx = { id: 'TX-' + Date.now(), type: 'payment', desc: 'Bayar via QRIS Mulih Coffee', amount: amt, status: 'verified', ts: Date.now() };
+  await DB.saveUser(user);
+  await DB.addTransaction(user.hp, tx);
+  document.getElementById('scanPayResultBox').innerHTML = `
+    <div style="font-size:32px">🎉</div>
+    <div style="font-family:var(--font-title);font-size:20px;color:var(--green);">Pembayaran Sukses!</div>
+    <div style="font-size:13px;color:#666;margin-top:6px;">${fmtRp(amt)} berhasil dibayar</div>
+    <div style="font-size:13px;font-weight:800;color:var(--brown);margin-top:4px;">+${Math.floor(amt/1000)} poin reward!</div>`;
+  refreshDash();
+  toast('✅ Pembayaran QRIS berhasil! ' + fmtRp(amt));
+}
+
+/* ============================================================
+   VOUCHER
+============================================================ */
+const DEFAULT_VOUCHERS = [
+  { id: 'V001', icon: '☕', title: 'Diskon 10%', desc: 'Berlaku untuk semua menu minuman', code: 'MULIH10', exp: '31 Des 2025', used: false },
+  { id: 'V002', icon: '🎁', title: 'Gratis Snack', desc: 'Bonus snack untuk order min. Rp50.000', code: 'SNAKFREE', exp: '31 Des 2025', used: false },
+];
+
+function renderVouchers(user) {
+  const el = document.getElementById('voucherList');
+  const vouchers = user.vouchers || DEFAULT_VOUCHERS;
+  if (!vouchers.length) {
+    el.innerHTML = '<div class="voucher-empty">🎫 Belum ada voucher. Klaim voucher harian di atas!</div>';
+    return;
+  }
+  el.innerHTML = '<div class="voucher-list">' + vouchers.map(v => `
+    <div class="voucher-card ${v.used ? 'used' : ''}">
+      <div class="voucher-left">${v.icon}</div>
+      <div class="voucher-body">
+        <div class="voucher-title">${v.title}</div>
+        <div class="voucher-desc">${v.desc}</div>
+        <div class="voucher-code-wrap">
+          <span class="voucher-code">${v.code}</span>
+          ${!v.used ? `<button class="btn-copy-voucher" onclick="copyVoucher('${v.code}')">Salin</button>` : '<span style="font-size:11px;color:#aaa;">Sudah dipakai</span>'}
+        </div>
+        <div class="voucher-exp">Berlaku hingga: ${v.exp}</div>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function copyVoucher(code) {
+  navigator.clipboard.writeText(code).then(() => toast('✅ Kode "' + code + '" disalin!')).catch(() => toast('📋 Kode: ' + code));
+}
+
+async function claimDailyVoucher() {
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+  const today = new Date().toDateString();
+  if (user.last_voucher_claim === today || user.lastVoucherClaim === today) { toast('⏳ Sudah klaim voucher hari ini! Besok lagi ya.'); return; }
+  const newVoucher = {
+    id: 'V-' + Date.now(), icon: '🌟',
+    title: 'Diskon 5% Harian', desc: 'Voucher harian Mulih Coffee',
+    code: 'DAILY' + Math.random().toString(36).substr(2,4).toUpperCase(),
+    exp: new Date(Date.now() + 86400000).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}),
+    used: false
+  };
+  if (!user.vouchers) user.vouchers = [...DEFAULT_VOUCHERS];
+  user.vouchers.push(newVoucher);
+  user.lastVoucherClaim = today;
+  await DB.saveUser(user);
+  renderVouchers(user);
+  toast('🎉 Voucher harian berhasil diklaim!');
+}
+
+/* ============================================================
+   MEMBERSHIP PLAN
+============================================================ */
+async function activatePlan(plan) {
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+  const prices = { bronze: 0, silver: 15000, gold: 30000 };
+  const price = prices[plan];
+  if (plan !== 'bronze' && user.saldo < price) {
+    toast('❌ Saldo tidak cukup! Top up dulu. Butuh: ' + fmtRp(price));
+    return;
+  }
+  if (plan !== 'bronze') {
+    user.saldo -= price;
+    const tx = { id: 'TX-' + Date.now(), type: 'payment', desc: 'Berlangganan Membership ' + plan.toUpperCase(), amount: price, status: 'verified', ts: Date.now() };
+    await DB.addTransaction(user.hp, tx);
+  }
+  user.memberPlan = plan;
+  // Grant vouchers for paid plans
+  if (plan === 'silver') {
+    if (!user.vouchers) user.vouchers = [...DEFAULT_VOUCHERS];
+    for (let i = 0; i < 3; i++) {
+      user.vouchers.push({
+        id: 'V-S' + i + Date.now(), icon: '🥈',
+        title: 'Diskon 10% Silver',
+        desc: 'Benefit Member Silver',
+        code: 'SILVER' + Math.random().toString(36).substr(2,4).toUpperCase(),
+        exp: new Date(Date.now() + 2592000000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}),
+        used: false
+      });
+    }
+  }
+  if (plan === 'gold') {
+    if (!user.vouchers) user.vouchers = [...DEFAULT_VOUCHERS];
+    for (let i = 0; i < 5; i++) {
+      user.vouchers.push({
+        id: 'V-G' + i + Date.now(), icon: '🥇',
+        title: 'Diskon 20% Gold',
+        desc: 'Benefit Member Gold',
+        code: 'GOLD' + Math.random().toString(36).substr(2,4).toUpperCase(),
+        exp: new Date(Date.now() + 2592000000).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}),
+        used: false
+      });
+    }
+  }
+  await DB.saveUser(user);
+  refreshDash();
+  renderVouchers(user);
+  const names = { bronze:'Bronze', silver:'Silver', gold:'Gold' };
+  toast('🎉 Membership ' + names[plan] + ' berhasil diaktifkan!');
+}
+
+/* ============================================================
+   TOP UP — METHOD SWITCH
+============================================================ */
+let topupBuktiBase64 = null;
+let topupMethod = 'transfer';
+
+function switchTopupMethod(method) {
+  topupMethod = method;
+  document.getElementById('topupTransferSection').style.display = method === 'transfer' ? 'block' : 'none';
+  document.getElementById('topupQrisSection').style.display = method === 'qris' ? 'block' : 'none';
+  if (method === 'qris') {
+    // Generate QRIS visual
+    generateTopupQRIS();
+  }
+}
+
+function generateTopupQRIS() {
+  const el = document.getElementById('topupQrisCode');
+  const amt = selectedTopup || 0;
+  document.getElementById('topupQrisAmt').textContent = fmtRp(amt);
+  const size = 130;
+  el.innerHTML = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${size}" height="${size}" fill="white"/>
+    <rect x="8" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="14" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
+    <rect x="${size-36}" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="${size-30}" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
+    <rect x="8" y="${size-36}" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
+    <rect x="14" y="${size-30}" width="16" height="16" rx="2" fill="#1a1008"/>
+    ${generateQRPattern('TOPUP'+amt, size)}
+    <rect x="${size/2-14}" y="${size/2-14}" width="28" height="28" rx="4" fill="#c07c3a"/>
+    <text x="${size/2}" y="${size/2+6}" text-anchor="middle" font-size="13" fill="white" font-family="Arial" font-weight="bold">M</text>
+  </svg>`;
+}
+
+function handleTopupBukti(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('⚠️ File terlalu besar! Maks 5MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    topupBuktiBase64 = ev.target.result;
+    document.getElementById('topupBuktiImg').src = topupBuktiBase64;
+    document.getElementById('topupBuktiPreview').style.display = 'block';
+    document.getElementById('topupUploadArea').style.display = 'none';
+    // Auto AI verify
+    runTopupAIVerify();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeTopupBukti() {
+  topupBuktiBase64 = null;
+  document.getElementById('topupBuktiInput').value = '';
+  document.getElementById('topupBuktiPreview').style.display = 'none';
+  document.getElementById('topupUploadArea').style.display = 'block';
+  document.getElementById('topupAIStatus').style.display = 'none';
+}
+
+async function runTopupAIVerify() {
+  const status = document.getElementById('topupAIStatus');
+  status.style.display = 'block';
+  status.style.background = '#fff8e0';
+  status.style.borderColor = '#c07c3a';
+  document.getElementById('topupAIStatusIcon').textContent = '🤖';
+  document.getElementById('topupAIStatusText').textContent = 'AI sedang verifikasi bukti...';
+  document.getElementById('topupAIStatusSub').textContent = 'Menganalisis gambar pembayaran kamu';
+  document.getElementById('btnConfirmTopup').disabled = true;
+
+  const imageData = topupBuktiBase64.split(',')[1];
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageData } },
+            { type: 'text', text: `Kamu adalah sistem verifikasi pembayaran Mulih Coffee. Periksa gambar bukti transfer ini.
+Apakah ini adalah bukti transfer/pembayaran yang valid? (nominal top up: Rp${fmtRp(selectedTopup)})
+Jawab HANYA dalam format JSON: {"valid": true/false, "nominal": number_or_null, "bank": "nama bank atau null", "alasan": "penjelasan singkat"}` }
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    let result;
+    try {
+      result = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch { result = { valid: false, alasan: 'Gagal parse hasil AI' }; }
+
+    if (result.valid) {
+      status.style.background = '#e8f9ee';
+      status.style.borderColor = 'var(--green)';
+      document.getElementById('topupAIStatusIcon').textContent = '✅';
+      document.getElementById('topupAIStatusText').textContent = 'Bukti Terverifikasi!';
+      document.getElementById('topupAIStatusSub').textContent = result.alasan || 'Pembayaran valid';
+      document.getElementById('btnConfirmTopup').disabled = false;
+    } else {
+      status.style.background = '#fde8e8';
+      status.style.borderColor = 'var(--red)';
+      document.getElementById('topupAIStatusIcon').textContent = '❌';
+      document.getElementById('topupAIStatusText').textContent = 'Bukti Tidak Valid';
+      document.getElementById('topupAIStatusSub').textContent = result.alasan || 'Upload ulang bukti yang lebih jelas';
+      document.getElementById('btnConfirmTopup').disabled = true;
+    }
+  } catch (err) {
+    // Fallback: allow manual confirm
+    status.style.background = '#fff8e0';
+    status.style.borderColor = 'var(--brown-light)';
+    document.getElementById('topupAIStatusIcon').textContent = '⚠️';
+    document.getElementById('topupAIStatusText').textContent = 'Verifikasi AI gagal';
+    document.getElementById('topupAIStatusSub').textContent = 'Admin akan verifikasi manual dalam 5-15 menit';
+    document.getElementById('btnConfirmTopup').disabled = false;
+  }
+}
+
+async function refreshDash() {
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+  document.getElementById('walletAmount').textContent = fmtRp(user.saldo);
+  renderTransactions(user);
+}
+
+function renderTransactions(user) {
+  const txs = [...(user.transactions || [])].reverse();
+
+  // Recent (5 terakhir)
+  renderTxList('txRecent', txs.slice(0,5));
+  // All
+  renderTxList('txAll', txs);
+}
+
+function renderTxList(elId, txs) {
+  const el = document.getElementById(elId);
+  if (!txs.length) {
+    el.innerHTML = '<div class="tx-empty">☕ Belum ada transaksi</div>';
+    return;
+  }
+  el.innerHTML = txs.map(tx => {
+    let iconClass = 'pend', amtClass = 'pend', amtPrefix = '', icon = '⏳';
+    if (tx.type === 'topup') {
+      if (tx.status === 'verified')   { iconClass='in';  amtClass='in';  amtPrefix='+'; icon='💰'; }
+      else if (tx.status === 'rejected') { iconClass='out'; amtClass='out'; amtPrefix='';  icon='❌'; }
+      else                             { iconClass='pend';amtClass='pend';amtPrefix='+'; icon='⏳'; }
+    } else if (tx.type === 'payment') {
+      iconClass='out'; amtClass='out'; amtPrefix='-'; icon='☕';
+    }
+    const badgeHtml = tx.status ? `<span class="tx-badge ${tx.status}">${tx.status==='verified'?'✓ Terverifikasi':tx.status==='rejected'?'✗ Ditolak':'⏳ Pending'}</span>` : '';
+    return `
+      <div class="tx-item">
+        <div class="tx-icon ${iconClass}">${icon}</div>
+        <div class="tx-info">
+          <div class="tx-desc">${tx.desc}${badgeHtml}</div>
+          <div class="tx-time">${fmtTime(tx.ts)}</div>
+        </div>
+        <div class="tx-amount ${amtClass}">${amtPrefix}${fmtRp(tx.amount)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   TOP UP
+============================================================ */
+let selectedTopup = 0;
+
+function selectTopup(amt) {
+  selectedTopup = amt;
+  document.getElementById('topupCustom').value = '';
+  document.querySelectorAll('.topup-chip').forEach(c => {
+    c.classList.toggle('selected', parseInt(c.textContent.replace(/[^0-9]/g,'')) === amt);
+  });
+}
+
+function onCustomTopup(v) {
+  selectedTopup = parseInt(v) || 0;
+  document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
+}
+
+function submitTopup() {
+  if (!selectedTopup || selectedTopup < 5000) { toast('⚠️ Minimal top up Rp5.000'); return; }
+  showTopupModal();
+}
+
+function showTopupModal() {
+  if (!selectedTopup) selectTopup(50000);
+  document.getElementById('modalTopupAmt').textContent = fmtRp(selectedTopup);
+  topupMethod = 'transfer';
+  topupBuktiBase64 = null;
+  document.getElementById('topupTransferSection').style.display = 'block';
+  document.getElementById('topupQrisSection').style.display = 'none';
+  document.getElementById('topupBuktiPreview').style.display = 'none';
+  document.getElementById('topupUploadArea').style.display = 'block';
+  document.getElementById('topupAIStatus').style.display = 'none';
+  document.getElementById('btnConfirmTopup').disabled = false;
+  document.querySelectorAll('input[name="topupMethod"]').forEach((r,i) => r.checked = i === 0);
+  document.getElementById('topupModal').classList.add('active');
+}
+
+function closeTopupModal(e) {
+  if (!e || e.target === document.getElementById('topupModal')) {
+    document.getElementById('topupModal').classList.remove('active');
+  }
+}
+
+async function confirmTopup() {
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+
+  if (topupMethod === 'qris') {
+    // QRIS — auto verify langsung
+    user.saldo += selectedTopup;
+    user.points = (user.points || 0) + Math.floor(selectedTopup / 1000);
+    const txId = 'TX-' + Date.now();
+    const tx = { id: txId, type: 'topup', desc: 'Top Up via QRIS (Auto Verified)', amount: selectedTopup, status: 'verified', ts: Date.now() };
+    await DB.saveUser(user);
+    await DB.addTransaction(user.hp, tx);
+    await DB.saveTopupRequest({ txId, userHp: user.hp, userName: user.nama, amount: selectedTopup, status: 'verified', method: 'qris', ts: Date.now() });
+    document.getElementById('topupModal').classList.remove('active');
+    selectedTopup = 0;
+    document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
+    document.getElementById('topupCustom').value = '';
+    toast('⚡ Top Up via QRIS berhasil! Saldo sudah masuk!');
+    refreshDash();
+    return;
+  }
+
+  // Transfer bank
+  if (!topupBuktiBase64) { toast('⚠️ Upload bukti transfer dulu!'); return; }
+
+  const aiStatusText = document.getElementById('topupAIStatusText')?.textContent || '';
+  const isAIVerified = aiStatusText.includes('Terverifikasi');
+
+  const txId = 'TX-' + Date.now();
+  const tx = {
+    id: txId, type: 'topup',
+    desc: 'Top Up via Transfer Bank',
+    amount: selectedTopup,
+    status: isAIVerified ? 'verified' : 'pending',
+    ts: Date.now()
+  };
+  if (isAIVerified) {
+    user.saldo += selectedTopup;
+    user.points = (user.points || 0) + Math.floor(selectedTopup / 1000);
+  }
+  await DB.saveUser(user);
+  await DB.addTransaction(user.hp, tx);
+  await DB.saveTopupRequest({ txId, userHp: user.hp, userName: user.nama, amount: selectedTopup, status: tx.status, method: 'transfer', bukti: topupBuktiBase64, ts: Date.now() });
+
+  document.getElementById('topupModal').classList.remove('active');
+  selectedTopup = 0;
+  topupBuktiBase64 = null;
+  document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('topupCustom').value = '';
+
+  if (isAIVerified) {
+    toast('✅ Top Up terverifikasi AI! Saldo langsung masuk!');
+  } else {
+    toast('📤 Request top up terkirim! Admin akan verifikasi segera.');
+  }
+  refreshDash();
+}
+
+/* ============================================================
+   CHANGE PASSWORD
+============================================================ */
+function showChangePwModal() {
+  document.getElementById('cpOld').value = '';
+  document.getElementById('cpNew').value = '';
+  document.getElementById('cpNew2').value = '';
+  clearErrors(['cpOldErr','cpNewErr','cpNew2Err']);
+  document.getElementById('changePwModal').classList.add('active');
+}
+
+function closeChangePwModal(e) {
+  if (!e || e.target === document.getElementById('changePwModal')) {
+    document.getElementById('changePwModal').classList.remove('active');
+  }
+}
+
+async function doChangePassword() {
+  clearErrors(['cpOldErr','cpNewErr','cpNew2Err']);
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+
+  const oldPw  = document.getElementById('cpOld').value;
+  const newPw  = document.getElementById('cpNew').value;
+  const newPw2 = document.getElementById('cpNew2').value;
+
+  let ok = true;
+  if (atob(user.password) !== oldPw) { setError('cpOldErr','Password lama salah'); ok=false; }
+  if (!newPw || newPw.length < 6)    { setError('cpNewErr','Password baru minimal 6 karakter'); ok=false; }
+  if (newPw !== newPw2)              { setError('cpNew2Err','Password tidak cocok'); ok=false; }
+  if (!ok) return;
+
+  user.password = btoa(newPw);
+  await DB.saveUser(user);
+  document.getElementById('changePwModal').classList.remove('active');
+  toast('🔑 Password berhasil diubah!');
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchPane(id) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Scroll ke atas setiap ganti tab
+  const content = document.querySelector('.dash-content');
+  if (content) content.scrollTop = 0;
+}
+
+function setNav(id) {
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ============================================================
+   FORM HELPERS
+============================================================ */
+function setError(id, msg) { document.getElementById(id).textContent = msg; }
+function clearErrors(ids) { ids.forEach(id => document.getElementById(id).textContent = ''); }
+
+/* ============================================================
+   INIT — Cek sesi yang sudah ada
+============================================================ */
+(async function init() {
+  const sess = DB.getSession();
+  if (sess) {
+    const user = await DB.getUser(sess.hp);
+    if (user) { loadDashboard(user); return; }
+  }
+  showScreen('authScreen');
+})();
+
+// Enter key support
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('regPass2').addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); });
+</script>
+
+</body>
+</html>
