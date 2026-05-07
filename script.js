@@ -24,12 +24,12 @@ const menuData = [
 ];
 
 const testimoniData = [
-  { name: "Rini W.", avatar: "👩", stars: 5, text: "Sumpah ini kopi paling enak yang pernah aku cobain! Mulih Signature-nya juara banget, bikin nagih setiap hari!", location: "Semarang" },
-  { name: "Budi S.", avatar: "👨", stars: 5, text: "Harganya terjangkau tapi kualitasnya nggak kalah sama kafe mahal. Es kopi susunya creamy banget, mantap!", location: "Solo" },
-  { name: "Dewi K.", avatar: "👩‍💼", stars: 5, text: "Pelayanannya ramah, tempatnya cozy, dan kopinya bikin kerja jadi semangat. Mulih emang beda!", location: "Yogyakarta" },
-  { name: "Andi R.", avatar: "🧑", stars: 4, text: "Matcha latte-nya top banget! Dan promo buy 2 get 1 bikin hemat maksimal. Rekomended buat anak muda!", location: "Magelang" },
-  { name: "Sari N.", avatar: "👩‍🎨", stars: 5, text: "Mulih Coffee adalah jawaban dari kelelahan kerja. Begitu minum, langsung pulih! Sesuai tagline-nya!", location: "Semarang" },
-  { name: "Fajar M.", avatar: "🧔", stars: 5, text: "Paket Mulih Special-nya worth it banget! Boba-nya kenyal, cold foam-nya pas, harga bersahabat!", location: "Pemalang" },
+  { name: "Iwan S.", avatar: "👩", stars: 5, text: "Sumpah ini kopi paling enak yang pernah aku cobain! Mulih Signature-nya juara banget, bikin nagih setiap hari!", location: "Semarang" },
+  { name: "Nadim K.", avatar: "👨", stars: 5, text: "Harganya terjangkau tapi kualitasnya nggak kalah sama kafe mahal. Es kopi susunya creamy banget, mantap!", location: "Solo" },
+  { name: "Ruhadi M..", avatar: "👩‍💼", stars: 5, text: "Pelayanannya ramah, tempatnya cozy, dan kopinya bikin kerja jadi semangat. Mulih emang beda!", location: "Yogyakarta" },
+  { name: "Kasto N.", avatar: "🧑", stars: 4, text: "Matcha latte-nya top banget! Dan promo buy 2 get 1 bikin hemat maksimal. Rekomended buat anak muda!", location: "Magelang" },
+  { name: "Tamim N.", avatar: "👩‍🎨", stars: 5, text: "Mulih Coffee adalah jawaban dari kelelahan kerja. Begitu minum, langsung pulih! Sesuai tagline-nya!", location: "Semarang" },
+  { name: "Teddy R.", avatar: "🧔", stars: 5, text: "Paket Mulih Special-nya worth it banget! Boba-nya kenyal, cold foam-nya pas, harga bersahabat!", location: "Pemalang" },
 ];
 
 const lokasiData = [
