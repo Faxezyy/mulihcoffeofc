@@ -9,34 +9,34 @@
 // DATA
 // ============================================
 const menuData = [
-  { id: 1, name: "Mulih Signature", emoji: "☕", price: 22000, desc: "Blend arabika & robusta spesial racikan barista kami.", category: "kopi", badge: "fav", badgeText: "FAVORIT" },
-  { id: 2, name: "Kopi Hitam", emoji: "🍵", price: 12000, desc: "Kopi tubruk original, pahit yang membuatmu melek.", category: "kopi", badge: "hot", badgeText: "HOT" },
-  { id: 3, name: "Es Kopi Susu", emoji: "🧋", price: 18000, desc: "Perpaduan espresso kental dengan susu segar pilihan.", category: "kopi", badge: "fav", badgeText: "FAVORIT" },
-  { id: 4, name: "Caramel Latte", emoji: "🥛", price: 25000, desc: "Latte lembut dengan siraman karamel manis di atas.", category: "kopi", badge: "new", badgeText: "BARU" },
-  { id: 5, name: "Matcha Latte", emoji: "🍵", price: 24000, desc: "Matcha premium Jepang dipadukan susu oat pilihan.", category: "non-kopi", badge: "new", badgeText: "BARU" },
-  { id: 6, name: "Teh Tarik", emoji: "🍶", price: 15000, desc: "Teh tarik klasik ala mamak, creamy dan gurih.", category: "non-kopi", badge: null, badgeText: "" },
-  { id: 7, name: "Es Coklat", emoji: "🍫", price: 20000, desc: "Coklat belgia premium dicampur susu dingin segar.", category: "non-kopi", badge: "hot", badgeText: "HOT" },
-  { id: 8, name: "Croissant", emoji: "🥐", price: 18000, desc: "Croissant butter lapis-lapis, renyah di luar lembut di dalam.", category: "snack", badge: null, badgeText: "" },
-  { id: 9, name: "Roti Bakar", emoji: "🍞", price: 15000, desc: "Roti tawar panggang dengan mentega dan selai istimewa.", category: "snack", badge: "hot", badgeText: "HOT" },
-  { id: 10, name: "Cookies Mulih", emoji: "🍪", price: 22000, desc: "Cookies choco chip bikinan sendiri, camilan paling pas.", category: "snack", badge: "fav", badgeText: "FAVORIT" },
-  { id: 11, name: "Mulih Special", emoji: "✨", price: 35000, desc: "Minuman eksklusif dengan topping boba & cold foam premium.", category: "spesial", badge: "new", badgeText: "BARU" },
-  { id: 12, name: "Arak Abu", emoji: "🌟", price: 30000, desc: "Es kopi susu dengan garam laut & brown sugar drizzle.", category: "spesial", badge: "hot", badgeText: "HOT" },
+  { id: 1, name: "Mulih Signature", emoji: "☕", foto: "img/menu/mulih-signature.jpg", price: 22000, desc: "Blend arabika & robusta spesial racikan barista kami.", category: "kopi", badge: "fav", badgeText: "FAVORIT" },
+  { id: 2, name: "Kopi Hitam", emoji: "🍵", foto: "img/menu/kopi-hitam.jpg", price: 12000, desc: "Kopi tubruk original, pahit yang membuatmu melek.", category: "kopi", badge: "hot", badgeText: "HOT" },
+  { id: 3, name: "Es Kopi Susu", emoji: "🧋", foto: "img/menu/es-kopi-susu.jpg", price: 18000, desc: "Perpaduan espresso kental dengan susu segar pilihan.", category: "kopi", badge: "fav", badgeText: "FAVORIT" },
+  { id: 4, name: "Caramel Latte", emoji: "🥛", foto: "img/menu/caramel-latte.jpg", price: 25000, desc: "Latte lembut dengan siraman karamel manis di atas.", category: "kopi", badge: "new", badgeText: "BARU" },
+  { id: 5, name: "Matcha Latte", emoji: "🍵", foto: "img/menu/matcha-latte.jpg", price: 24000, desc: "Matcha premium Jepang dipadukan susu oat pilihan.", category: "non-kopi", badge: "new", badgeText: "BARU" },
+  { id: 6, name: "Teh Tarik", emoji: "🍶", foto: "img/menu/teh-tarik.jpg", price: 15000, desc: "Teh tarik klasik ala mamak, creamy dan gurih.", category: "non-kopi", badge: null, badgeText: "" },
+  { id: 7, name: "Es Coklat", emoji: "🍫", foto: "img/menu/es-coklat.jpg", price: 20000, desc: "Coklat belgia premium dicampur susu dingin segar.", category: "non-kopi", badge: "hot", badgeText: "HOT" },
+  { id: 8, name: "Croissant", emoji: "🥐", foto: "img/menu/croissant.jpg", price: 18000, desc: "Croissant butter lapis-lapis, renyah di luar lembut di dalam.", category: "snack", badge: null, badgeText: "" },
+  { id: 9, name: "Roti Bakar", emoji: "🍞", foto: "img/menu/roti-bakar.jpg", price: 15000, desc: "Roti tawar panggang dengan mentega dan selai istimewa.", category: "snack", badge: "hot", badgeText: "HOT" },
+  { id: 10, name: "Cookies Mulih", emoji: "🍪", foto: "img/menu/cookies-mulih.jpg", price: 22000, desc: "Cookies choco chip bikinan sendiri, camilan paling pas.", category: "snack", badge: "fav", badgeText: "FAVORIT" },
+  { id: 11, name: "Mulih Special", emoji: "✨", foto: "img/menu/mulih-special.jpg", price: 35000, desc: "Minuman eksklusif dengan topping boba & cold foam premium.", category: "spesial", badge: "new", badgeText: "BARU" },
+  { id: 12, name: "Arak Abu", emoji: "🌟", foto: "img/menu/arak-abu.jpg", price: 30000, desc: "Es kopi susu dengan garam laut & brown sugar drizzle.", category: "spesial", badge: "hot", badgeText: "HOT" },
 ];
 
 const testimoniData = [
-  { name: "Iwan S.", avatar: "👩", stars: 5, text: "Sumpah ini kopi paling enak yang pernah aku cobain! Mulih Signature-nya juara banget, bikin nagih setiap hari!", location: "Semarang" },
-  { name: "Nadim K.", avatar: "👨", stars: 5, text: "Harganya terjangkau tapi kualitasnya nggak kalah sama kafe mahal. Es kopi susunya creamy banget, mantap!", location: "Solo" },
-  { name: "Ruhadi M..", avatar: "👩‍💼", stars: 5, text: "Pelayanannya ramah, tempatnya cozy, dan kopinya bikin kerja jadi semangat. Mulih emang beda!", location: "Yogyakarta" },
-  { name: "Kasto N.", avatar: "🧑", stars: 4, text: "Matcha latte-nya top banget! Dan promo buy 2 get 1 bikin hemat maksimal. Rekomended buat anak muda!", location: "Magelang" },
-  { name: "Tamim N.", avatar: "👩‍🎨", stars: 5, text: "Mulih Coffee adalah jawaban dari kelelahan kerja. Begitu minum, langsung pulih! Sesuai tagline-nya!", location: "Semarang" },
-  { name: "Teddy R.", avatar: "🧔", stars: 5, text: "Paket Mulih Special-nya worth it banget! Boba-nya kenyal, cold foam-nya pas, harga bersahabat!", location: "Pemalang" },
+  { name: "Iwan W.", avatar: "👨", stars: 5, text: "Sumpah ini kopi paling enak yang pernah aku cobain! Mulih Signature-nya juara banget, bikin nagih setiap hari!", location: "Semarang" },
+  { name: "Nadim I.", avatar: "👨", stars: 5, text: "Harganya terjangkau tapi kualitasnya nggak kalah sama kafe mahal. Es kopi susunya creamy banget, mantap!", location: "Solo" },
+  { name: "Ruhadi M.", avatar: "👩‍💼", stars: 5, text: "Pelayanannya ramah, tempatnya cozy, dan kopinya bikin kerja jadi semangat. Mulih emang beda!", location: "Yogyakarta" },
+  { name: "Kasto H.", avatar: "🧑", stars: 4, text: "Matcha latte-nya top banget! Dan promo buy 2 get 1 bikin hemat maksimal. Rekomended buat anak muda!", location: "Magelang" },
+  { name: "Tamim R.", avatar: "👩‍🎨", stars: 5, text: "Mulih Coffee adalah jawaban dari kelelahan kerja. Begitu minum, langsung pulih! Sesuai tagline-nya!", location: "Semarang" },
+  { name: "Teddy J.", avatar: "🧔", stars: 5, text: "Paket Mulih Special-nya worth it banget! Boba-nya kenyal, cold foam-nya pas, harga bersahabat!", location: "Pemalang" },
 ];
 
 const lokasiData = [
-  { nama: "Mulih Coffee - Semarang", alamat: "Jl. Pandanaran No. 22\nSemarang, Jawa Tengah", jam: "07.00 - 22.00", status: "buka", emoji: "🏙️", bg: "#fff8e0" },
-  { nama: "Mulih Coffee - Solo", alamat: "Jl. Slamet Riyadi No. 88\nSolo, Jawa Tengah", jam: "07.00 - 22.00", status: "buka", emoji: "🏯", bg: "#e8f4e8" },
-  { nama: "Mulih Coffee - Jogja", alamat: "Jl. Malioboro No. 14\nYogyakarta", jam: "08.00 - 23.00", status: "buka", emoji: "🎭", bg: "#e8eeff" },
-  { nama: "Mulih Coffee - Pemalang", alamat: "Jl. Pemuda No. 56\nPemalang, Jawa Tengah", jam: "07.00 - 21.00", status: "buka", emoji: "🌾", bg: "#ffe8e8" },
+  { nama: "Mulih Coffee - Semarang", foto: "img/outlet/semarang.jpg", alamat: "Jl. Pandanaran No. 22\nSemarang, Jawa Tengah", jam: "07.00 - 22.00", status: "buka", emoji: "🏙️", bg: "#fff8e0" },
+  { nama: "Mulih Coffee - Solo", foto: "img/outlet/solo.jpg", alamat: "Jl. Slamet Riyadi No. 88\nSolo, Jawa Tengah", jam: "07.00 - 22.00", status: "buka", emoji: "🏯", bg: "#e8f4e8" },
+  { nama: "Mulih Coffee - Jogja", foto: "img/outlet/jogja.jpg", alamat: "Jl. Malioboro No. 14\nYogyakarta", jam: "08.00 - 23.00", status: "buka", emoji: "🎭", bg: "#e8eeff" },
+  { nama: "Mulih Coffee - Pemalang", foto: "img/outlet/pemalang.jpg", alamat: "Jl. Pemuda No. 56\nPemalang, Jawa Tengah", jam: "07.00 - 21.00", status: "buka", emoji: "🌾", bg: "#ffe8e8" },
 ];
 
 // ============================================
@@ -171,9 +171,13 @@ function renderMenu(filter = 'all') {
 
     const badgeHtml = item.badge ? `<span class="menu-badge badge-${item.badge}">${item.badgeText}</span>` : '';
 
+    const imgHtml = item.foto
+      ? `<img src="${item.foto}" alt="${item.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span class="menu-emoji-fallback" style="display:none">${item.emoji}</span>`
+      : `<span class="menu-emoji-fallback">${item.emoji}</span>`;
+
     card.innerHTML = `
       <div class="menu-card-img" style="background:${bg}">
-        <span>${item.emoji}</span>
+        ${imgHtml}
         ${badgeHtml}
       </div>
       <div class="menu-card-body">
@@ -848,7 +852,10 @@ function renderLokasi() {
   const grid = document.getElementById('lokasiGrid');
   grid.innerHTML = lokasiData.map(lok => `
     <div class="lokasi-card">
-      <div class="lokasi-map" style="background:${lok.bg}">${lok.emoji}</div>
+      ${lok.foto
+        ? `<div class="lokasi-card-img"><img src="${lok.foto}" alt="${lok.nama}" loading="lazy" onerror="this.parentElement.style.display='none'" /></div>`
+        : `<div class="lokasi-map" style="background:${lok.bg}">${lok.emoji}</div>`
+      }
       <div class="lokasi-info">
         <h3>${lok.nama}</h3>
         <p>📍 ${lok.alamat.replace('\n', '<br/>')}</p>

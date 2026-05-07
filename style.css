@@ -1587,6 +1587,14 @@ body:has(a:hover, button:hover) .custom-cursor {
   .nav-link:hover, .nav-link.active { transform: none; box-shadow: none; background: var(--yellow); }
   .hamburger { display: flex; }
   .btn-order { display: none; }
+  .nav-actions {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn-cart {
+    padding: 8px 10px;
+    font-size: 18px;
+  }
 
   .hero {
     flex-direction: column;
@@ -2112,14 +2120,15 @@ body:has(a:hover, button:hover) .custom-cursor {
 
 /* Touch targets: minimal 44px */
 @media (max-width: 768px) {
-  button, .btn-primary, .btn-secondary, .btn-order,
-  .nav-link, .filter-btn, .fab-option, .back-top {
+  button, .btn-primary, .btn-secondary,
+  .fab-option, .back-top {
     min-height: 44px;
   }
 
-  /* Navbar: sembunyikan ORDER SEKARANG, tampilkan cart lebih besar */
-  .nav-actions { gap: 8px; }
-  .btn-cart { padding: 10px 14px; font-size: 20px; }
+  /* Navbar: rapikan di mobile */
+  .nav-actions { gap: 6px; }
+  .btn-cart { padding: 8px 10px; font-size: 18px; min-height: 40px !important; }
+  .navbar { height: 60px; }
 
   /* Topbar: scroll horizontal kalau overflow */
   .topbar {
@@ -2160,21 +2169,13 @@ body:has(a:hover, button:hover) .custom-cursor {
     display: flex;
     overflow-x: auto;
     gap: 8px;
-    padding: 4px 20px 12px;
+    padding: 0 20px 8px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
-    margin-bottom: 24px;
   }
   .menu-filter::-webkit-scrollbar { display: none; }
-  .filter-btn {
-    white-space: nowrap;
-    flex-shrink: 0;
-    font-size: 13px;
-    padding: 8px 16px;
-    min-height: 38px !important;
-  }
+  .filter-btn { white-space: nowrap; flex-shrink: 0; font-size: 13px; padding: 8px 14px; }
 
   /* Section headers */
   .section-title { font-size: clamp(28px, 7vw, 40px); }
@@ -2276,4 +2277,54 @@ body:has(a:hover, button:hover) .custom-cursor {
     .back-top { bottom: calc(80px + env(safe-area-inset-bottom)); }
     .modal-box { padding-bottom: env(safe-area-inset-bottom); }
   }
+}
+/* ============================================
+   FOTO MENU & OUTLET
+============================================ */
+.menu-card-img {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  border-bottom: var(--border);
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.menu-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.menu-card:hover .menu-card-img img {
+  transform: scale(1.07);
+}
+.menu-card-img .menu-emoji-fallback {
+  font-size: 52px;
+}
+
+.lokasi-card-img {
+  width: 100%;
+  height: 140px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  border-bottom: var(--border);
+  background: var(--cream-dark);
+}
+.lokasi-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.lokasi-card:hover .lokasi-card-img img {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .menu-card-img { height: 130px; }
+  .lokasi-card-img { height: 110px; }
 }
