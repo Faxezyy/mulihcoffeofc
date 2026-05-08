@@ -771,7 +771,7 @@ let cameraStream = null;
 // INIT
 // ============================================
 async function initPanel() {
-  // Load transaksi dari Supabase
+  // Load transaksi QRIS dari Supabase
   const { data: txData } = await _supa.from('qris_transactions').select('*').order('created_at', { ascending: false }).limit(50);
   if (txData) {
     txnLog = txData.map(t => ({
@@ -780,9 +780,18 @@ async function initPanel() {
       sender: t.sender, timestamp: t.created_at
     }));
   }
+
+  // Load pending topup count untuk stat
+  const { count: pendingCount } = await _supa
+    .from('topup_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+  _pendingTopupCount = pendingCount || 0;
+
   updateSaldoDisplay();
   renderStats();
   renderTxnLog();
+  _renderPendingTopups();
 }
 
 // ============================================
@@ -790,6 +799,7 @@ async function initPanel() {
 // ============================================
 let _activeSessionId = null;
 let _payPollInterval = null;
+let _pendingTopupCount = 0;
 
 async function setSaldo() {
   const val = parseInt(document.getElementById('saldoInput').value);
@@ -964,6 +974,7 @@ async function startCamera() {
     const video = document.getElementById('cameraVideo');
     video.srcObject = cameraStream;
     document.getElementById('cameraWrap').style.display = 'block';
+    try { await video.play(); } catch(e) {}
     document.getElementById('btnCamera').style.display = 'none';
     document.getElementById('btnStopCamera').style.display = 'block';
     document.getElementById('btnCaptureAnalyze').style.display = 'block';
@@ -1241,8 +1252,14 @@ function renderTxnLog() {
 function renderStats() {
   document.getElementById('statTotal').textContent = txnLog.length;
   document.getElementById('statVerified').textContent = txnLog.filter(t => t.status === 'TERVERIFIKASI').length;
-  document.getElementById('statPending').textContent = txnLog.filter(t => t.status === 'PERLU_REVIEW').length;
+  // Pending = topup_requests pending dari DB + PERLU_REVIEW dari qris_transactions
+  const qrisPending = txnLog.filter(t => t.status === 'PERLU_REVIEW').length;
+  document.getElementById('statPending').textContent = _pendingTopupCount + qrisPending;
   updateSaldoDisplay();
+}
+
+function _renderPendingTopups() {
+  // Placeholder — bisa dikembangkan untuk tampil list pending
 }
 
 async function clearTxnLog() {
@@ -1279,9 +1296,14 @@ async function startTopupScan() {
     });
     const video = document.getElementById('topupCamVideo');
     video.srcObject = _topupCamStream;
-    await video.play();
-
+    // Tampilkan wrap dulu sebelum play() supaya element visible & tidak error
     document.getElementById('topupCamWrap').style.display    = 'block';
+    try { await video.play(); } catch(playErr) { /* autoplay policy — user gesture sudah ada, abaikan */ }
+    // Fallback: tunggu loadedmetadata jika play() langsung gagal
+    if (video.paused) {
+      await new Promise(res => { video.addEventListener('loadedmetadata', res, { once: true }); });
+      video.play().catch(() => {});
+    }
     document.getElementById('btnTopupCam').style.display     = 'none';
     document.getElementById('btnStopTopupCam').style.display = 'block';
     document.getElementById('topupCamStatus').textContent    = '🟢 Arahkan ke QR topup customer...';
