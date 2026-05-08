@@ -1235,8 +1235,8 @@ const DB = {
   // --- Simpan/update user ---
   async saveUser(user) {
     try {
-      // id tidak dikirim — Supabase auto-generate UUID
       const row = {
+        id: user.id,
         hp: user.hp,
         nama: user.nama,
         email: user.email || '-',
@@ -1260,6 +1260,7 @@ const DB = {
       if (!res.ok) {
         const errText = await res.text();
         console.error('saveUser error:', res.status, errText);
+        alert('saveUser gagal: ' + res.status + ' — ' + errText);
         return false;
       }
       return true;
@@ -1319,7 +1320,7 @@ function fmtTime(ts) {
   return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })
        + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
 }
-function genId() { return 'MC-' + Math.random().toString(36).substring(2,8).toUpperCase(); }
+function genId() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); }); }
 
 let toastTimer;
 function toast(msg) {
@@ -1390,7 +1391,7 @@ async function doRegister() {
   if (exists) { setError('regHpErr','Nomor HP sudah terdaftar!'); return; }
 
   const newUser = {
-    nama, hp, email: email || '-',
+    id: genId(), nama, hp, email: email || '-',
     password: btoa(pass),
     saldo: 0, points: 0, memberPlan: 'bronze',
     createdAt: Date.now(), transactions: []
