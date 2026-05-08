@@ -1093,6 +1093,11 @@ Jawab HANYA dengan JSON ini (tanpa teks lain):
     lastScanResult = { result, saldo, timestamp: Date.now() };
     showScanResult(result, saldo);
 
+    // Auto-save ke DB jika terverifikasi, tanpa perlu klik tombol Simpan manual
+    if (result.status === 'TERVERIFIKASI') {
+      await saveToAdmin();
+    }
+
   } catch (err) {
     showToast('❌ Gagal koneksi ke AI!');
   } finally {
@@ -1324,17 +1329,28 @@ function stopTopupScan() {
 async function handleTopupQRData(rawData) {
   let payload;
   try {
-    const jsonStr = rawData.replace(/^mulih-topup:\/\//, '');
+    // Support: murni JSON, atau dengan prefix mulih-topup://
+    const jsonStr = rawData.startsWith('mulih-topup://')
+      ? rawData.replace('mulih-topup://', '')
+      : rawData;
     payload = JSON.parse(jsonStr);
   } catch (e) {
-    _showTopupScanError('QR tidak valid — bukan QR topup Mulih Coffee.');
+    _showTopupScanError('QR tidak valid — bukan QR topup Mulih Coffee. (Format tidak dikenali)');
     return;
   }
 
-  if (!payload.type || payload.type !== 'mulih-topup' || !payload.hp || !payload.amount || payload.amount <= 0) {
-    _showTopupScanError('QR tidak dikenali atau data tidak lengkap.');
+  // Validasi field wajib — amount boleh string angka, normalize ke Number
+  const amount = Number(payload.amount);
+  if (!payload.type || payload.type !== 'mulih-topup' || !payload.hp || !amount || amount <= 0) {
+    _showTopupScanError(
+      `QR tidak dikenali atau data tidak lengkap. ` +
+      `(type=${payload.type}, hp=${payload.hp}, amount=${payload.amount})`
+    );
     return;
   }
+
+  // Normalize amount ke Number agar operasi aritmatika benar
+  payload.amount = amount;
 
   // Ambil data customer dari Supabase
   const { data: customer, error } = await _supa

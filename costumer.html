@@ -1971,6 +1971,15 @@ function switchTopupMethod(method) {
   document.getElementById('topupTransferSection').style.display = method === 'transfer' ? 'block' : 'none';
   document.getElementById('topupQrisSection').style.display = method === 'qris' ? 'block' : 'none';
   if (method === 'qris') {
+    if (!selectedTopup || selectedTopup <= 0) {
+      toast('⚠️ Pilih nominal top up dulu sebelum pakai QRIS!');
+      // Switch balik ke transfer
+      topupMethod = 'transfer';
+      document.getElementById('topupTransferSection').style.display = 'block';
+      document.getElementById('topupQrisSection').style.display = 'none';
+      document.querySelectorAll('input[name="topupMethod"]').forEach((r,i) => r.checked = i === 0);
+      return;
+    }
     generateTopupQRIS();
     _registerQrisPending();
   }
