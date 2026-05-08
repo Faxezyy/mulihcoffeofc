@@ -2120,9 +2120,25 @@ Jawab HANYA dalam format JSON: {"valid": true/false, "nominal": number_or_null, 
 async function refreshDash() {
   const sess = DB.getSession();
   if (!sess) return;
+  // Re-fetch dari Supabase supaya saldo selalu fresh
   const user = await DB.getUser(sess.hp);
   if (!user) return;
   document.getElementById('walletAmount').textContent = fmtRp(user.saldo);
+  // Update member points juga
+  document.getElementById('memberPoints').textContent = (user.points || 0) + ' pts';
+  // Re-fetch transactions dari DB
+  const { data: txData } = await _supa
+    .from('transactions')
+    .select('*')
+    .eq('customer_hp', sess.hp)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (txData) {
+    user.transactions = txData.map(t => ({
+      type: t.type, desc: t.description, amount: Number(t.amount),
+      status: t.status, ts: new Date(t.created_at).getTime()
+    }));
+  }
   renderTransactions(user);
 }
 

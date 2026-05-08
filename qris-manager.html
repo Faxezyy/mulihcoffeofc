@@ -1382,13 +1382,14 @@ async function handleTopupQRData(rawData) {
 
 async function approveTopupScan() {
   if (!_topupScanPayload) return;
-  const { hp, nama, amount, customerFound } = _topupScanPayload;
+  const { hp, amount, customerFound } = _topupScanPayload;
+  const nama = _topupScanPayload.nama || customerFound?.nama || hp;
   const btn = document.getElementById('btnApproveTopup');
   btn.disabled = true; btn.textContent = '⏳ Memproses...';
 
   try {
     const newSaldo  = Number(customerFound.saldo) + Number(amount);
-    const newPoints = Number(customerFound.points || 0) + Math.floor(amount / 1000);
+    const newPoints = Number(customerFound.points || 0) + Math.floor(Number(amount) / 1000);
 
     // 1. Update saldo + poin customer
     const { error: updErr } = await _supa
@@ -1451,15 +1452,16 @@ async function approveTopupScan() {
       });
     }
 
-    // 4. Log ke qris_transactions (cek dulu apakah tabel ini ada id uuid atau bisa custom)
-    await _supa.from('qris_transactions').insert({
+    // 4. Log ke qris_transactions
+    const { error: qrisErr } = await _supa.from('qris_transactions').insert({
       order_code: 'TOPUP-' + hp,
       nominal:    Number(amount),
       status:     'TERVERIFIKASI',
       confidence: 100,
-      sender:     nama,
+      sender:     nama || hp,
       created_at: new Date().toISOString()
     });
+    if (qrisErr) console.error('qris_transactions insert error:', qrisErr.message, qrisErr);
 
     // Tampilkan sukses
     document.getElementById('topupScanResult').style.display  = 'none';
