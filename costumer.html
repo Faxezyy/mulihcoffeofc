@@ -1291,7 +1291,8 @@ const DB = {
     try {
       const ts = tx.ts ? new Date(tx.ts).toISOString() : new Date().toISOString();
       // Sertakan id custom agar polling bisa query by id
-      const row = { id: tx.id, customer_hp: hp, type: tx.type, description: tx.desc, amount: tx.amount, status: tx.status, created_at: ts };
+      // Jangan kirim id — DB pakai uuid auto-generate
+      const row = { customer_hp: hp, type: tx.type, description: tx.desc, amount: tx.amount, status: tx.status, created_at: ts };
       const res = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -1311,7 +1312,8 @@ const DB = {
   async saveTopupRequest(req) {
     try {
       const ts2 = req.ts ? new Date(req.ts).toISOString() : new Date().toISOString();
-      const row = { customer_hp: req.userHp, amount: req.amount, status: req.status, method: req.method || 'qris', bukti: req.bukti || null, created_at: ts2 };
+      // Jangan kirim method (tidak ada di DB) dan id (uuid auto-gen)
+      const row = { customer_hp: req.userHp, amount: req.amount, status: req.status, bukti: req.bukti || null, created_at: ts2 };
       const res = await fetch(`${SUPABASE_URL}/rest/v1/topup_requests`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -1803,6 +1805,7 @@ function switchTopupMethod(method) {
   document.getElementById('topupQrisSection').style.display = method === 'qris' ? 'block' : 'none';
   if (method === 'qris') {
     generateTopupQRIS();
+    _registerQrisPending();
   }
 }
 
@@ -2012,12 +2015,15 @@ function showTopupModal() {
   document.getElementById('modalTopupAmt').textContent = fmtRp(selectedTopup);
   topupMethod = 'transfer';
   topupBuktiBase64 = null;
+  _qrisPendingRegistered = false;
+  _qrisTxId = null;
   document.getElementById('topupTransferSection').style.display = 'block';
   document.getElementById('topupQrisSection').style.display = 'none';
   document.getElementById('topupBuktiPreview').style.display = 'none';
   document.getElementById('topupUploadArea').style.display = 'block';
   document.getElementById('topupAIStatus').style.display = 'none';
   document.getElementById('btnConfirmTopup').disabled = false;
+  document.getElementById('btnConfirmTopup').textContent = 'KONFIRMASI ✅';
   document.querySelectorAll('input[name="topupMethod"]').forEach((r,i) => r.checked = i === 0);
   document.getElementById('topupModal').classList.add('active');
 }
@@ -2030,6 +2036,43 @@ function closeTopupModal(e) {
   }
 }
 
+// Dipanggil saat QRIS dipilih — daftarkan pending request & mulai polling
+let _qrisPendingRegistered = false;
+let _qrisTxId = null;
+
+async function _registerQrisPending() {
+  if (_qrisPendingRegistered) return; // sudah terdaftar, skip
+  const sess = DB.getSession();
+  if (!sess) return;
+  const user = await DB.getUser(sess.hp);
+  if (!user) return;
+
+  const tx = {
+    type:   'topup',
+    desc:   'Top Up via QRIS — Menunggu Scan QRIS Manager',
+    amount: selectedTopup,
+    status: 'pending',
+    ts:     Date.now()
+  };
+  await DB.addTransaction(user.hp, tx);
+  await DB.saveTopupRequest({
+    userHp:   user.hp,
+    amount:   selectedTopup,
+    status:   'pending',
+    ts:       Date.now()
+  });
+
+  _qrisPendingRegistered = true;
+
+  // Ubah tombol konfirmasi jadi status waiting
+  document.getElementById('btnConfirmTopup').textContent = '⏳ Tunjukkan QR ke Kasir...';
+  document.getElementById('btnConfirmTopup').disabled = true;
+  toast('📱 Tunjukkan QR ini ke QRIS Manager untuk di-scan!');
+
+  // Mulai polling
+  startTopupPolling(null, user.hp);
+}
+
 async function confirmTopup() {
   const sess = DB.getSession();
   if (!sess) return;
@@ -2037,35 +2080,11 @@ async function confirmTopup() {
   if (!user) return;
 
   if (topupMethod === 'qris') {
-    // QRIS: simpan request PENDING — saldo belum bertambah
-    // QRIS Manager yang akan scan QR dan approve langsung
-    const txId = 'TX-' + Date.now();
-    const tx = {
-      id:     txId,
-      type:   'topup',
-      desc:   'Top Up via QRIS — Menunggu Scan QRIS Manager',
-      amount: selectedTopup,
-      status: 'pending',
-      ts:     Date.now()
-    };
-    await DB.addTransaction(user.hp, tx);
-    await DB.saveTopupRequest({
-      txId,
-      userHp:   user.hp,
-      userName: user.nama,
-      amount:   selectedTopup,
-      status:   'pending',
-      method:   'qris',
-      ts:       Date.now()
-    });
-
-    // Update tombol — jangan tutup modal, biarkan QR tetap tampil
-    document.getElementById('btnConfirmTopup').textContent = '⏳ Tunjukkan QR ke Kasir...';
-    document.getElementById('btnConfirmTopup').disabled = true;
-    toast('📱 Tunjukkan QR ini ke QRIS Manager untuk di-scan!');
-
-    // Polling setiap 3 detik — cek apakah sudah di-approve
-    startTopupPolling(txId, user.hp);
+    // Sudah dihandle oleh _registerQrisPending saat user pilih QRIS
+    // Kalau belum terdaftar (misal user langsung klik Konfirmasi sebelum switchTopupMethod jalan)
+    if (!_qrisPendingRegistered) {
+      await _registerQrisPending();
+    }
     return;
   }
 
@@ -2075,13 +2094,12 @@ async function confirmTopup() {
   const aiStatusText = document.getElementById('topupAIStatusText')?.textContent || '';
   const isAIVerified = aiStatusText.includes('Terverifikasi');
 
-  const txId = 'TX-' + Date.now();
   const tx = {
-    id: txId, type: 'topup',
-    desc: 'Top Up via Transfer Bank',
+    type:   'topup',
+    desc:   'Top Up via Transfer Bank',
     amount: selectedTopup,
     status: isAIVerified ? 'verified' : 'pending',
-    ts: Date.now()
+    ts:     Date.now()
   };
   if (isAIVerified) {
     user.saldo += selectedTopup;
@@ -2089,7 +2107,7 @@ async function confirmTopup() {
   }
   await DB.saveUser(user);
   await DB.addTransaction(user.hp, tx);
-  await DB.saveTopupRequest({ txId, userHp: user.hp, userName: user.nama, amount: selectedTopup, status: tx.status, method: 'transfer', bukti: topupBuktiBase64, ts: Date.now() });
+  await DB.saveTopupRequest({ userHp: user.hp, amount: selectedTopup, status: tx.status, bukti: topupBuktiBase64, ts: Date.now() });
 
   document.getElementById('topupModal').classList.remove('active');
   selectedTopup = 0;
@@ -2150,6 +2168,8 @@ function stopTopupPolling() {
 function _resetTopupModalState() {
   selectedTopup = 0;
   topupBuktiBase64 = null;
+  _qrisPendingRegistered = false;
+  _qrisTxId = null;
   document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('topupCustom').value = '';
   document.getElementById('btnConfirmTopup').textContent = 'KONFIRMASI ✅';

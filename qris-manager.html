@@ -1039,17 +1039,18 @@ async function saveToAdmin() {
   if (!lastScanResult) return;
   const { result, saldo, orderCode, timestamp } = lastScanResult;
 
-  const txnId = 'TXN-' + Math.random().toString(36).substr(2, 8).toUpperCase();
   const txn = {
-    id: txnId, order_code: orderCode || 'QRIS-DIRECT',
-    nominal: saldo, status: result.status,
-    confidence: result.confidence,
-    sender: result.nama_pengirim,
-    created_at: timestamp || Date.now()
+    order_code:  orderCode || 'QRIS-DIRECT',
+    nominal:     saldo,
+    status:      result.status,
+    confidence:  result.confidence,
+    sender:      result.nama_pengirim,
+    created_at:  new Date(timestamp || Date.now()).toISOString()
   };
 
   // Simpan ke Supabase
-  await _supa.from('qris_transactions').insert(txn);
+  const { data: inserted } = await _supa.from('qris_transactions').insert(txn).select('id').single();
+  const txnId = inserted?.id || ('TXN-' + Date.now());
 
   // Update order status jika ada kode order
   if (orderCode) {
@@ -1252,31 +1253,64 @@ async function approveTopupScan() {
       .eq('hp', hp);
     if (updErr) throw new Error('Gagal update saldo: ' + updErr.message);
 
-    // 2. Insert transaksi verified
-    const txId = 'TX-' + Date.now();
-    await _supa.from('transactions').insert({
-      id:          txId,
-      customer_hp: hp,
-      type:        'topup',
-      description: 'Top Up via QRIS — Disetujui QRIS Manager ✅',
-      amount:      amount,
-      status:      'verified',
-      created_at:  new Date().toISOString()
-    });
-
-    // 3. Update topup_request pending → verified
-    await _supa
+    // 2. Update topup_request pending → verified (by hp + amount, terbaru)
+    // Ambil id-nya dulu supaya update tepat sasaran
+    const { data: reqRows } = await _supa
       .from('topup_requests')
-      .update({ status: 'verified' })
+      .select('id')
       .eq('customer_hp', hp)
-      .eq('amount', amount)
-      .eq('status', 'pending');
+      .eq('amount', Number(amount))
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    // 4. Log ke qris_transactions
+    if (reqRows && reqRows.length > 0) {
+      await _supa
+        .from('topup_requests')
+        .update({ status: 'verified' })
+        .eq('id', reqRows[0].id);
+    } else {
+      // Tidak ada pending request — insert baru tanpa id & method (uuid auto-gen, no method col)
+      await _supa.from('topup_requests').insert({
+        customer_hp: hp,
+        amount:      Number(amount),
+        status:      'verified',
+        created_at:  new Date().toISOString()
+      });
+    }
+
+    // 3. Update transactions pending → verified (by hp + amount + type topup)
+    const { data: txRows } = await _supa
+      .from('transactions')
+      .select('id')
+      .eq('customer_hp', hp)
+      .eq('amount', Number(amount))
+      .eq('type', 'topup')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (txRows && txRows.length > 0) {
+      await _supa
+        .from('transactions')
+        .update({ status: 'verified' })
+        .eq('id', txRows[0].id);
+    } else {
+      // Insert transaksi baru tanpa custom id (uuid auto-gen)
+      await _supa.from('transactions').insert({
+        customer_hp: hp,
+        type:        'topup',
+        description: 'Top Up via QRIS — Disetujui QRIS Manager ✅',
+        amount:      Number(amount),
+        status:      'verified',
+        created_at:  new Date().toISOString()
+      });
+    }
+
+    // 4. Log ke qris_transactions (cek dulu apakah tabel ini ada id uuid atau bisa custom)
     await _supa.from('qris_transactions').insert({
-      id:         'QTX-' + Date.now(),
       order_code: 'TOPUP-' + hp,
-      nominal:    amount,
+      nominal:    Number(amount),
       status:     'TERVERIFIKASI',
       confidence: 100,
       sender:     nama,
