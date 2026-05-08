@@ -439,51 +439,27 @@
             <div class="qris-display-wrap">
               <div class="qris-frame">
                 <div class="qris-label">QRIS · Scan to Pay</div>
-                <!-- QRIS SVG placeholder yang sama dengan index.html -->
-                <svg class="qris-code-svg" viewBox="0 0 184 184" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="184" height="184" fill="white"/>
-                  <!-- TL finder -->
-                  <rect x="8" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
-                  <rect x="14" y="14" width="44" height="44" rx="2" fill="white"/>
-                  <rect x="20" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
-                  <!-- TR finder -->
-                  <rect x="120" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
-                  <rect x="126" y="14" width="44" height="44" rx="2" fill="white"/>
-                  <rect x="132" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
-                  <!-- BL finder -->
-                  <rect x="8" y="120" width="56" height="56" rx="4" fill="#1a1008"/>
-                  <rect x="14" y="126" width="44" height="44" rx="2" fill="white"/>
-                  <rect x="20" y="132" width="32" height="32" rx="2" fill="#1a1008"/>
-                  <!-- Data modules -->
-                  <rect x="80" y="8" width="8" height="8" fill="#1a1008"/><rect x="92" y="8" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="8" width="8" height="8" fill="#1a1008"/><rect x="80" y="20" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="20" width="8" height="8" fill="#1a1008"/><rect x="80" y="32" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="32" width="8" height="8" fill="#1a1008"/><rect x="104" y="32" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="44" width="8" height="8" fill="#1a1008"/><rect x="80" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="56" width="8" height="8" fill="#1a1008"/><rect x="8" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="20" y="80" width="8" height="8" fill="#1a1008"/><rect x="32" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="80" width="8" height="8" fill="#1a1008"/><rect x="68" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="80" width="8" height="8" fill="#1a1008"/><rect x="104" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="116" y="80" width="8" height="8" fill="#1a1008"/><rect x="128" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="152" y="80" width="8" height="8" fill="#1a1008"/><rect x="164" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="176" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="8" y="92" width="8" height="8" fill="#1a1008"/><rect x="32" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="92" width="8" height="8" fill="#1a1008"/><rect x="80" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="92" width="8" height="8" fill="#1a1008"/><rect x="116" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="140" y="92" width="8" height="8" fill="#1a1008"/><rect x="164" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="8" y="104" width="8" height="8" fill="#1a1008"/><rect x="20" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="44" y="104" width="8" height="8" fill="#1a1008"/><rect x="68" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="104" width="8" height="8" fill="#1a1008"/><rect x="116" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="104" width="8" height="8" fill="#1a1008"/><rect x="56" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="116" width="8" height="8" fill="#1a1008"/><rect x="104" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="116" width="8" height="8" fill="#1a1008"/><rect x="56" y="128" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="128" width="8" height="8" fill="#1a1008"/><rect x="92" y="128" width="8" height="8" fill="#1a1008"/>
-                  <!-- Center logo -->
-                  <rect x="58" y="58" width="28" height="28" rx="4" fill="#c07c3a"/>
-                  <text x="72" y="76" text-anchor="middle" font-size="16" fill="white" font-family="Arial" font-weight="bold">M</text>
-                </svg>
+                <!-- QR dinamis — diisi JS setelah set nominal -->
+                <div id="qrisQRContainer" style="width:184px;height:184px;margin:8px auto;display:flex;align-items:center;justify-content:center;">
+                  <svg class="qris-code-svg" viewBox="0 0 184 184" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="184" height="184" fill="white"/>
+                    <rect x="8" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+                    <rect x="14" y="14" width="44" height="44" rx="2" fill="white"/>
+                    <rect x="20" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+                    <rect x="120" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+                    <rect x="126" y="14" width="44" height="44" rx="2" fill="white"/>
+                    <rect x="132" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+                    <rect x="8" y="120" width="56" height="56" rx="4" fill="#1a1008"/>
+                    <rect x="14" y="126" width="44" height="44" rx="2" fill="white"/>
+                    <rect x="20" y="132" width="32" height="32" rx="2" fill="#1a1008"/>
+                    <rect x="58" y="58" width="28" height="28" rx="4" fill="#c07c3a"/>
+                    <text x="72" y="76" text-anchor="middle" font-size="16" fill="white" font-family="Arial" font-weight="bold">M</text>
+                    <text x="92" y="110" text-anchor="middle" font-size="10" fill="#aaa" font-family="Arial">Set nominal dulu</text>
+                  </svg>
+                </div>
                 <div class="qris-merchant-name">☕ MULIH COFFEE</div>
                 <div class="qris-amount-display" id="qrisAmountDisplay">Rp 0</div>
+                <div id="qrisActiveLabel" style="display:none;margin-top:6px;font-size:11px;font-weight:800;color:var(--green);background:#e8f9ee;padding:4px 10px;border-radius:20px;border:2px solid var(--green);">🟢 Menunggu scan...</div>
                 <div class="qris-apps">GoPay · OVO · Dana · ShopeePay · m-Banking</div>
               </div>
             </div>
@@ -717,8 +693,31 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- POPUP: Pembayaran Masuk -->
+<div id="paySuccessOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;align-items:center;justify-content:center;">
+  <div style="background:var(--cream);border:var(--border);border-radius:var(--radius-lg);box-shadow:8px 8px 0 var(--yellow);padding:36px 32px;max-width:360px;width:90%;text-align:center;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);">
+    <div style="font-size:56px;margin-bottom:8px;">🎉</div>
+    <div style="font-family:var(--font-title);font-size:32px;color:var(--green);margin-bottom:4px;">PEMBAYARAN MASUK!</div>
+    <div style="font-family:var(--font-title);font-size:26px;color:var(--brown);margin-bottom:8px;" id="popupPayNominal">Rp 0</div>
+    <div style="font-size:13px;color:#666;margin-bottom:6px;" id="popupPayCustomer">–</div>
+    <div style="font-size:12px;color:#888;margin-bottom:24px;" id="popupPayTime">–</div>
+    <button onclick="confirmPaySuccessOk()"
+      style="width:100%;padding:16px;background:var(--green);color:white;
+             border:var(--border);border-radius:var(--radius);
+             font-family:var(--font-title);font-size:24px;
+             cursor:pointer;box-shadow:var(--shadow);transition:all 0.2s;">
+      ✅ OKE, SIAP!
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes popIn { from { opacity:0; transform:scale(0.7); } to { opacity:1; transform:scale(1); } }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 // ============================================
 // SUPABASE
@@ -787,30 +786,159 @@ async function initPanel() {
 }
 
 // ============================================
-// SALDO
+// SALDO + PAYMENT SESSION
 // ============================================
-function setSaldo() {
+let _activeSessionId = null;
+let _payPollInterval = null;
+
+async function setSaldo() {
   const val = parseInt(document.getElementById('saldoInput').value);
   if (!val || val < 0) { showToast('⚠️ Masukkan nominal yang valid!'); return; }
   qrisSaldo = val;
   updateSaldoDisplay();
-  showToast(`✅ Saldo QRIS diset ke Rp${val.toLocaleString('id-ID')}`);
+  await _createPaymentSession(val);
+  showToast(`✅ QRIS aktif! Nominal: Rp${val.toLocaleString('id-ID')}`);
 }
 
 function quickAmount(amount) {
   document.getElementById('saldoInput').value = amount;
   qrisSaldo = amount;
   updateSaldoDisplay();
-  showToast(`✅ Saldo QRIS: Rp${amount.toLocaleString('id-ID')}`);
+  _createPaymentSession(amount);
+  showToast(`✅ QRIS aktif! Nominal: Rp${amount.toLocaleString('id-ID')}`);
+}
+
+async function _createPaymentSession(amount) {
+  // Stop polling sesi lama
+  _stopPayPoll();
+
+  // Insert session baru ke Supabase
+  const { data, error } = await _supa
+    .from('payment_sessions')
+    .insert({ amount: Number(amount), status: 'waiting', created_at: new Date().toISOString() })
+    .select('id')
+    .single();
+
+  if (error || !data) {
+    showToast('❌ Gagal buat sesi pembayaran: ' + (error?.message || 'unknown'));
+    return;
+  }
+
+  _activeSessionId = data.id;
+
+  // Generate QR real dari session_id
+  _generateQrisQR(data.id, amount);
+
+  // Mulai polling status sesi
+  _startPayPoll(data.id, amount);
+}
+
+function _generateQrisQR(sessionId, amount) {
+  const el = document.getElementById('qrisQRContainer');
+  if (!el) return;
+  el.innerHTML = '';
+
+  const payload = JSON.stringify({
+    type:      'mulih-qris-pay',
+    sessionId: sessionId,
+    amount:    amount,
+    merchant:  'Mulih Coffee',
+    ts:        Date.now()
+  });
+
+  try {
+    new QRCode(el, {
+      text:         payload,
+      width:        184,
+      height:       184,
+      colorDark:    '#1a1008',
+      colorLight:   '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    el.innerHTML = `<div style="width:184px;height:184px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff8ee;border:2px dashed #c07c3a;border-radius:8px;font-size:12px;font-weight:800;color:#4a2c0a;text-align:center;padding:12px;">📱 QR Aktif<br>${_fmtRp(amount)}</div>`;
+  }
+
+  // Update status label
+  const lbl = document.getElementById('qrisActiveLabel');
+  if (lbl) { lbl.style.display = 'block'; lbl.textContent = `🟢 QR Aktif — Menunggu customer scan...`; }
+}
+
+function _startPayPoll(sessionId, amount) {
+  _payPollInterval = setInterval(async () => {
+    try {
+      const { data } = await _supa
+        .from('payment_sessions')
+        .select('status, customer_hp, customer_nama, paid_at')
+        .eq('id', sessionId)
+        .single();
+
+      if (!data) return;
+
+      if (data.status === 'paid') {
+        _stopPayPoll();
+        _showPaySuccessPopup(amount, data.customer_nama || data.customer_hp, data.paid_at);
+      }
+    } catch(e) { /* retry */ }
+  }, 2000);
+}
+
+function _stopPayPoll() {
+  if (_payPollInterval) { clearInterval(_payPollInterval); _payPollInterval = null; }
+}
+
+function _showPaySuccessPopup(amount, customerName, paidAt) {
+  document.getElementById('popupPayNominal').textContent = _fmtRp(amount);
+  document.getElementById('popupPayCustomer').textContent = '👤 ' + (customerName || 'Customer');
+  const t = paidAt ? new Date(paidAt).toLocaleString('id-ID') : new Date().toLocaleString('id-ID');
+  document.getElementById('popupPayTime').textContent = '🕐 ' + t;
+  const ov = document.getElementById('paySuccessOverlay');
+  ov.style.display = 'flex';
+  // Sound feedback
+  try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA...').play(); } catch(e) {}
+}
+
+async function confirmPaySuccessOk() {
+  document.getElementById('paySuccessOverlay').style.display = 'none';
+  // Reset saldo ke 0
+  qrisSaldo = 0;
+  document.getElementById('saldoInput').value = '';
+  updateSaldoDisplay();
+  // Reset QR
+  const el = document.getElementById('qrisQRContainer');
+  if (el) el.innerHTML = _getQrisPlaceholderSVG();
+  const lbl = document.getElementById('qrisActiveLabel');
+  if (lbl) { lbl.style.display = 'none'; }
+  _activeSessionId = null;
+  showToast('✅ Siap untuk transaksi berikutnya!');
+  await initPanel();
 }
 
 function updateSaldoDisplay() {
-  const fmt = `Rp ${qrisSaldo.toLocaleString('id-ID')}`;
+  const fmt = qrisSaldo > 0 ? `Rp ${qrisSaldo.toLocaleString('id-ID')}` : 'Rp 0';
   document.getElementById('saldoDisplay').textContent = fmt;
   document.getElementById('qrisAmountDisplay').textContent = fmt;
   document.getElementById('statSaldo').textContent = qrisSaldo >= 1000000
     ? `${(qrisSaldo/1000000).toFixed(1)}jt`
     : qrisSaldo >= 1000 ? `${Math.round(qrisSaldo/1000)}K` : 'Rp'+qrisSaldo;
+}
+
+function _getQrisPlaceholderSVG() {
+  return `<svg class="qris-code-svg" viewBox="0 0 184 184" xmlns="http://www.w3.org/2000/svg">
+    <rect width="184" height="184" fill="white"/>
+    <rect x="8" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+    <rect x="14" y="14" width="44" height="44" rx="2" fill="white"/>
+    <rect x="20" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+    <rect x="120" y="8" width="56" height="56" rx="4" fill="#1a1008"/>
+    <rect x="126" y="14" width="44" height="44" rx="2" fill="white"/>
+    <rect x="132" y="20" width="32" height="32" rx="2" fill="#1a1008"/>
+    <rect x="8" y="120" width="56" height="56" rx="4" fill="#1a1008"/>
+    <rect x="14" y="126" width="44" height="44" rx="2" fill="white"/>
+    <rect x="20" y="132" width="32" height="32" rx="2" fill="#1a1008"/>
+    <rect x="58" y="58" width="28" height="28" rx="4" fill="#c07c3a"/>
+    <text x="72" y="76" text-anchor="middle" font-size="16" fill="white" font-family="Arial" font-weight="bold">M</text>
+    <text x="92" y="110" text-anchor="middle" font-size="10" fill="#aaa" font-family="Arial">Set nominal dulu</text>
+  </svg>`;
 }
 
 // ============================================

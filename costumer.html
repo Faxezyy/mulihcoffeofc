@@ -1136,6 +1136,45 @@
   </div>
 </div>
 
+<!-- Modal: Konfirmasi Bayar QRIS -->
+<div class="modal-overlay" id="qrisPayModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-title">⚡ Konfirmasi Pembayaran</div>
+    <div class="modal-body">
+      <input type="hidden" id="qrisPaySessionId" />
+
+      <div style="text-align:center;padding:8px 0 16px;">
+        <div style="font-size:13px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Tagihan</div>
+        <div style="font-family:var(--font-title);font-size:48px;color:var(--brown);" id="qrisPayNominal">Rp0</div>
+        <div style="font-size:12px;color:#888;margin-top:4px;">☕ Mulih Coffee</div>
+      </div>
+
+      <div style="background:var(--cream-dark);border:2px solid var(--brown-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #e0c89a;">
+          <span style="color:#888;font-weight:600;">Tagihan</span>
+          <span style="font-weight:800;" id="qrisPayAmt">–</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #e0c89a;">
+          <span style="color:#888;font-weight:600;">Saldo Kamu</span>
+          <span style="font-weight:800;" id="qrisPaySaldo">–</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;">
+          <span style="color:#888;font-weight:600;">Saldo Setelah</span>
+          <span style="font-weight:800;color:var(--green);" id="qrisPaySaldoAfter">–</span>
+        </div>
+      </div>
+
+      <div id="qrisPayWarning" style="display:none;background:#fde8e8;border:2px solid var(--red);border-radius:var(--radius);padding:10px 14px;font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px;text-align:center;"></div>
+
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button style="flex:1;padding:12px;background:var(--cream-dark);border:var(--border);border-radius:var(--radius);font-weight:800;" onclick="document.getElementById('qrisPayModal').classList.remove('active')">Batal</button>
+        <button class="modal-btn pop-btn" style="flex:2;margin-top:0;background:var(--green);" id="qrisPayBtn" onclick="confirmQrisPayment()">⚡ BAYAR SEKARANG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Ganti Password -->
 <div class="modal-overlay" id="changePwModal" onclick="closeChangePwModal(event)">
   <div class="modal-sheet">
@@ -1195,6 +1234,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 'use strict';
 
@@ -1627,16 +1667,15 @@ function startPayScan() {
   vw.style.display = 'block';
   document.getElementById('scanPayLine').style.display = 'block';
   document.getElementById('scanPayWrap').style.display = 'none';
+  document.getElementById('scanPayResultBox').innerHTML = '';
+  document.getElementById('scanPayResultBox').classList.remove('show');
+
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => {
       scanStream = stream;
       video.srcObject = stream;
       video.play();
-      // Simulate successful scan after 2s for demo
-      setTimeout(() => {
-        stopScan();
-        simulateQrisPaymentScan();
-      }, 2500);
+      scanInterval = setInterval(() => _tryScanPayFrame(video), 400);
     })
     .catch(() => {
       toast('⚠️ Kamera tidak tersedia');
@@ -1645,43 +1684,171 @@ function startPayScan() {
     });
 }
 
-function simulateQrisPaymentScan() {
+function _tryScanPayFrame(video) {
+  const canvas = document.getElementById('scanPayCanvas');
+  if (!canvas || video.videoWidth === 0) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const imgData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+
+  // Gunakan jsQR jika tersedia
+  if (typeof jsQR !== 'undefined') {
+    const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data) {
+      clearInterval(scanInterval);
+      stopScan();
+      document.getElementById('scanPayVideoWrap').style.display = 'none';
+      document.getElementById('scanPayLine').style.display = 'none';
+      _handleQrisPayData(code.data);
+    }
+  }
+}
+
+async function _handleQrisPayData(rawData) {
+  let payload;
+  try {
+    payload = JSON.parse(rawData);
+  } catch(e) {
+    _showPayScanError('QR tidak valid — bukan QR pembayaran Mulih Coffee.');
+    return;
+  }
+
+  if (!payload || payload.type !== 'mulih-qris-pay' || !payload.sessionId || !payload.amount) {
+    _showPayScanError('QR tidak dikenali. Pastikan scan QR dari QRIS Manager Mulih Coffee.');
+    return;
+  }
+
+  // Cek session masih aktif
+  const { data: session, error } = await _supa
+    .from('payment_sessions')
+    .select('id, amount, status')
+    .eq('id', payload.sessionId)
+    .single();
+
+  if (error || !session) {
+    _showPayScanError('Sesi pembayaran tidak ditemukan atau sudah kadaluarsa.');
+    return;
+  }
+  if (session.status === 'paid') {
+    _showPayScanError('Sesi ini sudah dibayar. Minta kasir set nominal baru.');
+    return;
+  }
+
+  // Tampilkan popup konfirmasi bayar
+  _showQrisPayPopup(session.id, session.amount);
+}
+
+function _showPayScanError(msg) {
   const rb = document.getElementById('scanPayResultBox');
   rb.classList.add('show');
-  rb.style.background = '#e8f9ee';
-  document.getElementById('scanPayResult').innerHTML = `
-    <div style="font-size:32px">✅</div>
-    <div style="font-family:var(--font-title);font-size:20px;color:var(--green);">QRIS Terdeteksi!</div>
-    <div style="font-size:13px;color:#666;margin-top:6px;">Merchant: Mulih Coffee Indonesia</div>
-    <div style="margin-top:12px;">
-      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:6px;">Masukkan nominal:</div>
-      <input class="form-input" id="scanPayAmt" type="number" placeholder="0" min="1000" style="margin-bottom:10px;"/>
-      <button class="btn-auth pop-btn" style="font-size:16px;padding:12px;" onclick="confirmQrisPayment()">BAYAR SEKARANG ⚡</button>
-    </div>`;
-  document.getElementById('scanPayVideoWrap').style.display = 'none';
+  rb.style.background = '#fde8e8';
+  rb.innerHTML = `
+    <div style="font-size:28px;margin-bottom:8px;">❌</div>
+    <div style="font-weight:800;color:var(--red);font-size:14px;">${msg}</div>
+    <button onclick="document.getElementById('scanPayWrap').style.display='block';this.closest('.scan-result-box').classList.remove('show')"
+      style="margin-top:12px;padding:8px 20px;background:var(--cream-dark);border:var(--border);border-radius:8px;font-weight:800;cursor:pointer;">
+      🔄 Coba Lagi
+    </button>`;
+}
+
+function _showQrisPayPopup(sessionId, amount) {
+  const sess = DB.getSession();
+  const nama = sess ? sess.nama : '';
+  document.getElementById('qrisPaySessionId').value = sessionId;
+  document.getElementById('qrisPayNominal').textContent = fmtRp(amount);
+  document.getElementById('qrisPayAmt').textContent = fmtRp(amount);
+
+  // Cek saldo customer
+  DB.getUser(sess?.hp).then(user => {
+    if (user) {
+      const saldoCukup = user.saldo >= amount;
+      document.getElementById('qrisPaySaldo').textContent = fmtRp(user.saldo);
+      document.getElementById('qrisPaySaldoAfter').textContent = saldoCukup ? fmtRp(user.saldo - amount) : '–';
+      document.getElementById('qrisPayBtn').disabled = !saldoCukup;
+      document.getElementById('qrisPayBtn').style.opacity = saldoCukup ? '1' : '0.4';
+      if (!saldoCukup) {
+        document.getElementById('qrisPayWarning').style.display = 'block';
+        document.getElementById('qrisPayWarning').textContent = `❌ Saldo tidak cukup! Kamu butuh ${fmtRp(amount - user.saldo)} lagi.`;
+      } else {
+        document.getElementById('qrisPayWarning').style.display = 'none';
+      }
+    }
+  });
+
+  document.getElementById('qrisPayModal').classList.add('active');
 }
 
 async function confirmQrisPayment() {
-  const amt = parseInt(document.getElementById('scanPayAmt').value) || 0;
-  if (amt < 1000) { toast('⚠️ Nominal minimal Rp1.000'); return; }
+  const sessionId = document.getElementById('qrisPaySessionId').value;
   const sess = DB.getSession();
   if (!sess) return;
   const user = await DB.getUser(sess.hp);
   if (!user) return;
-  if (user.saldo < amt) { toast('❌ Saldo tidak cukup! Saldo kamu: ' + fmtRp(user.saldo)); return; }
+
+  // Ambil nominal dari session (source of truth)
+  const { data: session } = await _supa
+    .from('payment_sessions')
+    .select('id, amount, status')
+    .eq('id', sessionId)
+    .single();
+
+  if (!session || session.status === 'paid') {
+    toast('❌ Sesi sudah tidak valid. Minta kasir set ulang.');
+    document.getElementById('qrisPayModal').classList.remove('active');
+    return;
+  }
+
+  const amt = Number(session.amount);
+  if (user.saldo < amt) { toast('❌ Saldo tidak cukup!'); return; }
+
+  const btn = document.getElementById('qrisPayBtn');
+  btn.disabled = true; btn.textContent = '⏳ Memproses...';
+
+  // 1. Kurangi saldo customer
   user.saldo -= amt;
   user.points = (user.points || 0) + Math.floor(amt / 1000);
-  const tx = { id: 'TX-' + Date.now(), type: 'payment', desc: 'Bayar via QRIS Mulih Coffee', amount: amt, status: 'verified', ts: Date.now() };
   await DB.saveUser(user);
-  await DB.addTransaction(user.hp, tx);
-  document.getElementById('scanPayResultBox').innerHTML = `
-    <div style="font-size:32px">🎉</div>
-    <div style="font-family:var(--font-title);font-size:20px;color:var(--green);">Pembayaran Sukses!</div>
-    <div style="font-size:13px;color:#666;margin-top:6px;">${fmtRp(amt)} berhasil dibayar</div>
-    <div style="font-size:13px;font-weight:800;color:var(--brown);margin-top:4px;">+${Math.floor(amt/1000)} poin reward!</div>`;
+
+  // 2. Insert transaksi payment
+  await DB.addTransaction(user.hp, {
+    type:   'payment',
+    desc:   'Bayar via QRIS Mulih Coffee',
+    amount: amt,
+    status: 'verified',
+    ts:     Date.now()
+  });
+
+  // 3. Update payment_session → paid
+  await _supa.from('payment_sessions').update({
+    status:        'paid',
+    customer_hp:   user.hp,
+    customer_nama: user.nama,
+    paid_at:       new Date().toISOString()
+  }).eq('id', sessionId);
+
+  // Tutup modal scan, tampilkan sukses
+  document.getElementById('qrisPayModal').classList.remove('active');
+  _showQrisPaySuccess(amt);
   refreshDash();
-  toast('✅ Pembayaran QRIS berhasil! ' + fmtRp(amt));
 }
+
+function _showQrisPaySuccess(amt) {
+  const rb = document.getElementById('scanPayResultBox');
+  rb.classList.add('show');
+  rb.style.background = '#e8f9ee';
+  rb.innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+    <div style="font-family:var(--font-title);font-size:22px;color:var(--green);">Pembayaran Berhasil!</div>
+    <div style="font-size:15px;font-weight:800;color:var(--brown);margin-top:6px;">${fmtRp(amt)}</div>
+    <div style="font-size:13px;color:#666;margin-top:4px;">+${Math.floor(amt/1000)} poin reward!</div>
+    <button onclick="document.getElementById('scanPayWrap').style.display='block';this.closest('.scan-result-box').classList.remove('show');document.getElementById('scanPayLine').style.display='none';"
+      style="margin-top:14px;padding:10px 24px;background:var(--brown);color:var(--yellow);border:var(--border);border-radius:8px;font-family:var(--font-title);font-size:16px;cursor:pointer;box-shadow:var(--shadow);">
+      ✅ Selesai
+    </button>`;
+}
+
+function simulateQrisPaymentScan() {} // kept for compat, not used
 
 /* ============================================================
    VOUCHER
