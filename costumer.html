@@ -1194,6 +1194,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 
@@ -1800,28 +1801,54 @@ function switchTopupMethod(method) {
   document.getElementById('topupTransferSection').style.display = method === 'transfer' ? 'block' : 'none';
   document.getElementById('topupQrisSection').style.display = method === 'qris' ? 'block' : 'none';
   if (method === 'qris') {
-    // Generate QRIS visual
     generateTopupQRIS();
   }
 }
 
 function generateTopupQRIS() {
   const el = document.getElementById('topupQrisCode');
-  const amt = selectedTopup || 0;
+  if (!el) return;
+
+  // Bersihkan elemen sebelumnya
+  el.innerHTML = '';
+
+  const sess = DB.getSession();
+  const hp   = sess ? sess.hp   : 'unknown';
+  const nama = sess ? sess.nama : 'Tamu';
+  const amt  = selectedTopup || 0;
+
   document.getElementById('topupQrisAmt').textContent = fmtRp(amt);
-  const size = 130;
-  el.innerHTML = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${size}" height="${size}" fill="white"/>
-    <rect x="8" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
-    <rect x="14" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
-    <rect x="${size-36}" y="8" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
-    <rect x="${size-30}" y="14" width="16" height="16" rx="2" fill="#1a1008"/>
-    <rect x="8" y="${size-36}" width="28" height="28" rx="3" fill="none" stroke="#1a1008" stroke-width="3"/>
-    <rect x="14" y="${size-30}" width="16" height="16" rx="2" fill="#1a1008"/>
-    ${generateQRPattern('TOPUP'+amt, size)}
-    <rect x="${size/2-14}" y="${size/2-14}" width="28" height="28" rx="4" fill="#c07c3a"/>
-    <text x="${size/2}" y="${size/2+6}" text-anchor="middle" font-size="13" fill="white" font-family="Arial" font-weight="bold">M</text>
-  </svg>`;
+
+  // Payload yang akan di-scan QRIS Manager
+  const payload = JSON.stringify({
+    type:   'mulih-topup',
+    hp:     hp,
+    nama:   nama,
+    amount: amt,
+    ts:     Date.now()
+  });
+
+  // Generate QR real menggunakan QRCode.js
+  try {
+    new QRCode(el, {
+      text:         payload,
+      width:        190,
+      height:       190,
+      colorDark:    '#1a1008',
+      colorLight:   '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (e) {
+    // Fallback jika library belum dimuat
+    el.innerHTML = `
+      <div style="width:190px;height:190px;border:3px dashed #c07c3a;border-radius:8px;
+                  display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  background:#fff8ee;padding:12px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">📱</div>
+        <div style="font-size:12px;font-weight:800;color:#4a2c0a;">QR Topup<br>${fmtRp(amt)}</div>
+        <div style="font-size:10px;color:#888;margin-top:6px;">${hp}</div>
+      </div>`;
+  }
 }
 
 function handleTopupBukti(e) {
@@ -1996,6 +2023,8 @@ function showTopupModal() {
 
 function closeTopupModal(e) {
   if (!e || e.target === document.getElementById('topupModal')) {
+    stopTopupPolling();
+    _resetTopupModalState();
     document.getElementById('topupModal').classList.remove('active');
   }
 }
@@ -2007,20 +2036,35 @@ async function confirmTopup() {
   if (!user) return;
 
   if (topupMethod === 'qris') {
-    // QRIS — auto verify langsung
-    user.saldo += selectedTopup;
-    user.points = (user.points || 0) + Math.floor(selectedTopup / 1000);
+    // QRIS: simpan request PENDING — saldo belum bertambah
+    // QRIS Manager yang akan scan QR dan approve langsung
     const txId = 'TX-' + Date.now();
-    const tx = { id: txId, type: 'topup', desc: 'Top Up via QRIS (Auto Verified)', amount: selectedTopup, status: 'verified', ts: Date.now() };
-    await DB.saveUser(user);
+    const tx = {
+      id:     txId,
+      type:   'topup',
+      desc:   'Top Up via QRIS — Menunggu Scan QRIS Manager',
+      amount: selectedTopup,
+      status: 'pending',
+      ts:     Date.now()
+    };
     await DB.addTransaction(user.hp, tx);
-    await DB.saveTopupRequest({ txId, userHp: user.hp, userName: user.nama, amount: selectedTopup, status: 'verified', method: 'qris', ts: Date.now() });
-    document.getElementById('topupModal').classList.remove('active');
-    selectedTopup = 0;
-    document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
-    document.getElementById('topupCustom').value = '';
-    toast('⚡ Top Up via QRIS berhasil! Saldo sudah masuk!');
-    refreshDash();
+    await DB.saveTopupRequest({
+      txId,
+      userHp:   user.hp,
+      userName: user.nama,
+      amount:   selectedTopup,
+      status:   'pending',
+      method:   'qris',
+      ts:       Date.now()
+    });
+
+    // Update tombol — jangan tutup modal, biarkan QR tetap tampil
+    document.getElementById('btnConfirmTopup').textContent = '⏳ Tunjukkan QR ke Kasir...';
+    document.getElementById('btnConfirmTopup').disabled = true;
+    toast('📱 Tunjukkan QR ini ke QRIS Manager untuk di-scan!');
+
+    // Polling setiap 3 detik — cek apakah sudah di-approve
+    startTopupPolling(txId, user.hp);
     return;
   }
 
@@ -2058,6 +2102,49 @@ async function confirmTopup() {
     toast('📤 Request top up terkirim! Admin akan verifikasi segera.');
   }
   refreshDash();
+}
+
+/* ── Polling: cek status transaksi setiap 3 detik ── */
+let _topupPollInterval = null;
+
+async function startTopupPolling(txId, hp) {
+  stopTopupPolling();
+  _topupPollInterval = setInterval(async () => {
+    try {
+      const { data } = await _supa
+        .from('transactions')
+        .select('status')
+        .eq('id', txId)
+        .single();
+      if (!data) return;
+
+      if (data.status === 'verified') {
+        stopTopupPolling();
+        document.getElementById('topupModal').classList.remove('active');
+        _resetTopupModalState();
+        toast('🎉 Top Up berhasil! Saldo sudah masuk ke akun kamu!');
+        refreshDash();
+      } else if (data.status === 'rejected') {
+        stopTopupPolling();
+        document.getElementById('topupModal').classList.remove('active');
+        _resetTopupModalState();
+        toast('❌ Top Up ditolak oleh QRIS Manager.');
+      }
+    } catch (e) { /* abaikan error sementara */ }
+  }, 3000);
+}
+
+function stopTopupPolling() {
+  if (_topupPollInterval) { clearInterval(_topupPollInterval); _topupPollInterval = null; }
+}
+
+function _resetTopupModalState() {
+  selectedTopup = 0;
+  topupBuktiBase64 = null;
+  document.querySelectorAll('.topup-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('topupCustom').value = '';
+  document.getElementById('btnConfirmTopup').textContent = 'KONFIRMASI ✅';
+  document.getElementById('btnConfirmTopup').disabled = false;
 }
 
 /* ============================================================

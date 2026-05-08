@@ -611,6 +611,94 @@
       </div>
     </div>
 
+    <!-- SCAN QR TOPUP CUSTOMER -->
+    <div class="panel-card full-card" id="topupScanCard">
+      <div class="panel-card-header">
+        📲 Scan QR Topup Customer
+        <span style="font-size:13px;font-family:var(--font-body);font-weight:600;opacity:0.8">Auto Approve Langsung</span>
+      </div>
+      <div class="panel-card-body" style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+
+        <!-- Kamera scan -->
+        <div style="flex:1;min-width:260px;">
+          <div class="camera-wrap" id="topupCamWrap" style="display:none;">
+            <video id="topupCamVideo" autoplay playsinline muted></video>
+            <canvas id="topupCamCanvas" style="display:none;"></canvas>
+            <div class="camera-overlay">
+              <div class="scan-frame"><div class="scan-line"></div></div>
+            </div>
+          </div>
+          <div class="camera-status" id="topupCamStatus">📷 Siap scan QR topup customer</div>
+          <button class="btn-camera" id="btnTopupCam" onclick="startTopupScan()">📷 BUKA KAMERA SCAN QR TOPUP</button>
+          <button class="btn-stop-camera" id="btnStopTopupCam" onclick="stopTopupScan()" style="display:none;">⏹️ STOP KAMERA</button>
+          <div style="margin-top:10px;padding:10px 14px;background:#fff8e0;border:2px solid #c07c00;border-radius:var(--radius);font-size:12px;color:#7a4418;line-height:1.6;">
+            💡 <strong>Cara pakai:</strong> Customer buka halaman topup → pilih QRIS → muncul QR dengan data mereka → arahkan kamera ini ke QR tersebut → klik Approve.
+          </div>
+        </div>
+
+        <!-- Hasil scan & approve -->
+        <div style="flex:1;min-width:260px;" id="topupScanResultWrap">
+
+          <!-- Belum scan -->
+          <div id="topupScanIdle" style="padding:32px;text-align:center;color:#aaa;border:3px dashed var(--cream-dark);border-radius:var(--radius);background:white;">
+            <div style="font-size:40px;margin-bottom:8px;">📱</div>
+            <div style="font-weight:800;font-size:14px;">Belum ada QR yang di-scan</div>
+            <div style="font-size:12px;margin-top:4px;">Buka kamera dan scan QR topup customer</div>
+          </div>
+
+          <!-- Info customer terdeteksi -->
+          <div id="topupScanResult" style="display:none;border:3px solid var(--green);border-radius:var(--radius);overflow:hidden;">
+            <div style="background:var(--green);color:white;padding:12px 16px;font-family:var(--font-title);font-size:20px;">
+              ✅ QR Topup Terbaca!
+            </div>
+            <div style="background:white;padding:16px;">
+              <div class="scan-info-row"><div class="scan-info-key">👤 Nama</div><div class="scan-info-val ok" id="tqNama">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">📱 No. HP</div><div class="scan-info-val" id="tqHp">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">💰 Nominal Topup</div><div class="scan-info-val ok" id="tqAmount">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">📊 Saldo Sekarang</div><div class="scan-info-val" id="tqSaldoNow">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">📊 Saldo Setelah</div><div class="scan-info-val ok" id="tqSaldoAfter">–</div></div>
+              <div class="scan-info-row"><div class="scan-info-key">🕐 Waktu QR Dibuat</div><div class="scan-info-val" id="tqTs">–</div></div>
+              <div style="margin-top:14px;display:flex;gap:8px;">
+                <button onclick="approveTopupScan()"
+                  style="flex:2;padding:12px;background:var(--green);color:white;border:var(--border);
+                         border-radius:var(--radius);font-family:var(--font-title);font-size:20px;
+                         cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);"
+                  id="btnApproveTopup">
+                  ⚡ APPROVE SALDO
+                </button>
+                <button onclick="rejectTopupScan()"
+                  style="flex:1;padding:12px;background:var(--red);color:white;border:var(--border);
+                         border-radius:var(--radius);font-weight:800;font-size:14px;cursor:pointer;
+                         box-shadow:var(--shadow);">
+                  ❌ TOLAK
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div id="topupScanError" style="display:none;border:3px solid var(--red);border-radius:var(--radius);padding:20px;background:#fde8e8;text-align:center;">
+            <div style="font-size:32px;margin-bottom:8px;">❌</div>
+            <div style="font-weight:800;color:var(--red);font-size:15px;" id="topupScanErrMsg">QR tidak valid</div>
+            <button onclick="resetTopupScan()" style="margin-top:12px;padding:8px 20px;background:var(--cream-dark);border:var(--border);border-radius:8px;font-weight:800;cursor:pointer;">
+              🔄 Scan Ulang
+            </button>
+          </div>
+
+          <!-- Sukses -->
+          <div id="topupScanSuccess" style="display:none;border:3px solid var(--green);border-radius:var(--radius);padding:20px;background:#e8f9ee;text-align:center;">
+            <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+            <div style="font-family:var(--font-title);font-size:24px;color:var(--green);" id="topupSuccessMsg">Saldo Berhasil Masuk!</div>
+            <div style="font-size:13px;color:#555;margin-top:6px;" id="topupSuccessDetail">–</div>
+            <button onclick="resetTopupScan()" style="margin-top:14px;padding:10px 24px;background:var(--brown);color:var(--yellow);border:var(--border);border-radius:8px;font-family:var(--font-title);font-size:18px;cursor:pointer;box-shadow:var(--shadow);">
+              📷 SCAN BERIKUTNYA
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- TRANSACTION LOG (full width) -->
     <div class="panel-card full-card">
       <div class="panel-card-header">
@@ -630,6 +718,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ============================================
 // SUPABASE
@@ -1040,6 +1129,209 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
+
+// ============================================
+// SCAN QR TOPUP CUSTOMER
+// ============================================
+let _topupCamStream   = null;
+let _topupScanActive  = false;
+let _topupScanPayload = null;
+
+async function startTopupScan() {
+  try {
+    _topupCamStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('topupCamVideo');
+    video.srcObject = _topupCamStream;
+    await video.play();
+
+    document.getElementById('topupCamWrap').style.display    = 'block';
+    document.getElementById('btnTopupCam').style.display     = 'none';
+    document.getElementById('btnStopTopupCam').style.display = 'block';
+    document.getElementById('topupCamStatus').textContent    = '🟢 Arahkan ke QR topup customer...';
+
+    _resetTopupScanResult();
+    document.getElementById('topupScanIdle').style.display = 'none';
+
+    _topupScanActive = true;
+    requestAnimationFrame(_topupScanFrame);
+  } catch (err) {
+    showToast('❌ Tidak bisa akses kamera: ' + err.message);
+  }
+}
+
+function _topupScanFrame() {
+  if (!_topupScanActive) return;
+  const video  = document.getElementById('topupCamVideo');
+  const canvas = document.getElementById('topupCamCanvas');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data) {
+      _topupScanActive = false;
+      stopTopupScan();
+      handleTopupQRData(code.data);
+      return;
+    }
+  }
+  requestAnimationFrame(_topupScanFrame);
+}
+
+function stopTopupScan() {
+  _topupScanActive = false;
+  if (_topupCamStream) { _topupCamStream.getTracks().forEach(t => t.stop()); _topupCamStream = null; }
+  document.getElementById('topupCamWrap').style.display    = 'none';
+  document.getElementById('btnTopupCam').style.display     = 'block';
+  document.getElementById('btnStopTopupCam').style.display = 'none';
+  document.getElementById('topupCamStatus').textContent    = '📷 Siap scan QR topup customer';
+}
+
+async function handleTopupQRData(rawData) {
+  let payload;
+  try {
+    const jsonStr = rawData.replace(/^mulih-topup:\/\//, '');
+    payload = JSON.parse(jsonStr);
+  } catch (e) {
+    _showTopupScanError('QR tidak valid — bukan QR topup Mulih Coffee.');
+    return;
+  }
+
+  if (!payload.type || payload.type !== 'mulih-topup' || !payload.hp || !payload.amount || payload.amount <= 0) {
+    _showTopupScanError('QR tidak dikenali atau data tidak lengkap.');
+    return;
+  }
+
+  // Ambil data customer dari Supabase
+  const { data: customer, error } = await _supa
+    .from('customers')
+    .select('hp, nama, saldo, points')
+    .eq('hp', payload.hp)
+    .single();
+
+  if (error || !customer) {
+    _showTopupScanError(`Customer dengan HP ${payload.hp} tidak ditemukan.`);
+    return;
+  }
+
+  _topupScanPayload = { ...payload, customerFound: customer };
+
+  const newSaldo = Number(customer.saldo) + Number(payload.amount);
+  document.getElementById('tqNama').textContent      = customer.nama;
+  document.getElementById('tqHp').textContent        = customer.hp;
+  document.getElementById('tqAmount').textContent    = _fmtRp(payload.amount);
+  document.getElementById('tqSaldoNow').textContent  = _fmtRp(customer.saldo);
+  document.getElementById('tqSaldoAfter').textContent= _fmtRp(newSaldo);
+  document.getElementById('tqTs').textContent        = new Date(payload.ts).toLocaleString('id-ID');
+
+  document.getElementById('topupScanIdle').style.display   = 'none';
+  document.getElementById('topupScanResult').style.display = 'block';
+  document.getElementById('topupScanError').style.display  = 'none';
+  document.getElementById('topupScanSuccess').style.display= 'none';
+}
+
+async function approveTopupScan() {
+  if (!_topupScanPayload) return;
+  const { hp, nama, amount, customerFound } = _topupScanPayload;
+  const btn = document.getElementById('btnApproveTopup');
+  btn.disabled = true; btn.textContent = '⏳ Memproses...';
+
+  try {
+    const newSaldo  = Number(customerFound.saldo) + Number(amount);
+    const newPoints = Number(customerFound.points || 0) + Math.floor(amount / 1000);
+
+    // 1. Update saldo + poin customer
+    const { error: updErr } = await _supa
+      .from('customers')
+      .update({ saldo: newSaldo, points: newPoints })
+      .eq('hp', hp);
+    if (updErr) throw new Error('Gagal update saldo: ' + updErr.message);
+
+    // 2. Insert transaksi verified
+    const txId = 'TX-' + Date.now();
+    await _supa.from('transactions').insert({
+      id:          txId,
+      customer_hp: hp,
+      type:        'topup',
+      description: 'Top Up via QRIS — Disetujui QRIS Manager ✅',
+      amount:      amount,
+      status:      'verified',
+      created_at:  new Date().toISOString()
+    });
+
+    // 3. Update topup_request pending → verified
+    await _supa
+      .from('topup_requests')
+      .update({ status: 'verified' })
+      .eq('customer_hp', hp)
+      .eq('amount', amount)
+      .eq('status', 'pending');
+
+    // 4. Log ke qris_transactions
+    await _supa.from('qris_transactions').insert({
+      id:         'QTX-' + Date.now(),
+      order_code: 'TOPUP-' + hp,
+      nominal:    amount,
+      status:     'TERVERIFIKASI',
+      confidence: 100,
+      sender:     nama,
+      created_at: new Date().toISOString()
+    });
+
+    // Tampilkan sukses
+    document.getElementById('topupScanResult').style.display  = 'none';
+    document.getElementById('topupScanSuccess').style.display = 'block';
+    document.getElementById('topupSuccessMsg').textContent    = `+${_fmtRp(amount)} berhasil masuk!`;
+    document.getElementById('topupSuccessDetail').textContent =
+      `${nama} (${hp}) · Saldo baru: ${_fmtRp(newSaldo)}`;
+
+    showToast(`✅ Topup ${_fmtRp(amount)} untuk ${nama} berhasil diapprove!`);
+    await initPanel();
+  } catch (e) {
+    showToast('❌ Error: ' + e.message);
+    btn.disabled = false; btn.textContent = '⚡ APPROVE SALDO';
+  }
+}
+
+async function rejectTopupScan() {
+  if (!_topupScanPayload) return;
+  const { hp, amount } = _topupScanPayload;
+  await _supa.from('topup_requests').update({ status: 'rejected' })
+    .eq('customer_hp', hp).eq('amount', amount).eq('status', 'pending');
+  await _supa.from('transactions').update({ status: 'rejected' })
+    .eq('customer_hp', hp).eq('amount', amount).eq('status', 'pending').eq('type', 'topup');
+  showToast('❌ Topup ditolak.');
+  resetTopupScan();
+}
+
+function resetTopupScan() {
+  _topupScanPayload = null;
+  _resetTopupScanResult();
+  document.getElementById('topupScanIdle').style.display = 'block';
+}
+
+function _resetTopupScanResult() {
+  document.getElementById('topupScanResult').style.display  = 'none';
+  document.getElementById('topupScanError').style.display   = 'none';
+  document.getElementById('topupScanSuccess').style.display = 'none';
+  const btn = document.getElementById('btnApproveTopup');
+  if (btn) { btn.disabled = false; btn.textContent = '⚡ APPROVE SALDO'; }
+}
+
+function _showTopupScanError(msg) {
+  document.getElementById('topupScanIdle').style.display   = 'none';
+  document.getElementById('topupScanResult').style.display = 'none';
+  document.getElementById('topupScanError').style.display  = 'block';
+  document.getElementById('topupScanSuccess').style.display= 'none';
+  document.getElementById('topupScanErrMsg').textContent   = msg;
+}
+
+function _fmtRp(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
 
 // Auto-login check via sessionStorage
 if (sessionStorage.getItem('mulihQrisSession') === '1') doLogin();
