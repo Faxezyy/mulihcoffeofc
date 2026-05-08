@@ -29,8 +29,8 @@
       --transition:  all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 16px; }
-    body { font-family: var(--font-body); background: var(--brown); color: var(--black); min-height: 100vh; overflow-x: hidden; }
+    html { scroll-behavior: smooth; font-size: 16px; overflow: hidden; height: 100%; }
+    body { font-family: var(--font-body); background: var(--brown); color: var(--black); min-height: 100vh; overflow: hidden; height: 100%; }
     a { text-decoration: none; color: inherit; }
     button { cursor: pointer; font-family: var(--font-body); }
     input, textarea, select { font-family: var(--font-body); }
@@ -39,6 +39,7 @@
     .screen { display: none; }
     .screen.active { display: block; }
     /* Saat authScreen aktif, body tidak perlu scroll */
+    #authScreen { display: none; }
     #authScreen.active { display: flex; }
     /* dashScreen pakai flex column — override display:block */
     #dashScreen.active { display: flex; }
@@ -60,10 +61,12 @@
     /* ============ AUTH SCREEN ============ */
     #authScreen {
       min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px 16px;
+      height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 24px 16px 40px;
       background: var(--brown);
-      position: relative; overflow: hidden;
+      position: fixed; inset: 0; z-index: 999;
+      overflow-y: auto;
     }
     .auth-bg-dots {
       position: absolute; inset: 0;
@@ -76,7 +79,8 @@
       box-shadow: 8px 8px 0 var(--yellow);
       width: 100%; max-width: 420px;
       position: relative; z-index: 2;
-      overflow: hidden;
+      overflow: visible;
+      margin-top: auto; margin-bottom: auto;
     }
     .auth-header {
       background: var(--brown);
@@ -1189,7 +1193,7 @@
 <script>(function(){document.addEventListener('click',function(e){if(!document.getElementById('devNav').contains(e.target))document.getElementById('devNavMenu').classList.remove('open');});})();</script>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <script>
 'use strict';
 
@@ -1198,7 +1202,10 @@
 ============================================================ */
 const SUPABASE_URL = 'https://ynhrnldpvhjrfmxyyqhc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaHJubGRwdmhqcmZteHl5cWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMjY5MDIsImV4cCI6MjA5MzcwMjkwMn0.WCUyo-3x9SsHn4pgxOALJtxv758n_I_ZT5tnD8w-A-c';
-const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  realtime: { params: { eventsPerSecond: 0 } },
+  global: { fetch: (...args) => fetch(...args) }
+});
 
 /* ============================================================
    DATABASE — Supabase
@@ -1227,17 +1234,39 @@ const DB = {
 
   // --- Simpan/update user ---
   async saveUser(user) {
-    const row = {
-      hp: user.hp, id: user.id, nama: user.nama,
-      email: user.email || '-', password: user.password,
-      saldo: user.saldo, points: user.points || 0,
-      member_plan: user.memberPlan || 'bronze',
-      vouchers: user.vouchers || [],
-      last_voucher_claim: user.lastVoucherClaim || null
-    };
-    const { error } = await _supa.from('customers').upsert(row, { onConflict: 'hp' });
-    if (error) console.error('saveUser error:', error);
-    return !error;
+    try {
+      const row = {
+        id: user.id,
+        hp: user.hp,
+        nama: user.nama,
+        email: user.email || '-',
+        password: user.password || null,
+        saldo: Number(user.saldo),
+        points: Number(user.points || 0),
+        member_plan: user.memberPlan || 'bronze',
+        vouchers: JSON.parse(JSON.stringify(user.vouchers || [])),
+        last_voucher_claim: user.lastVoucherClaim || null
+      };
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('saveUser error:', res.status, errText);
+        return false;
+      }
+      return true;
+    } catch(e) {
+      console.error('saveUser exception:', e.message || e);
+      return false;
+    }
   },
 
   // --- Cek apakah HP sudah terdaftar ---
@@ -1248,14 +1277,17 @@ const DB = {
 
   // --- Tambah transaksi ---
   async addTransaction(hp, tx) {
-    const { error } = await _supa.from('transactions').insert({
-      id: tx.id, customer_hp: hp,
-      type: tx.type, desc: tx.desc,
-      amount: tx.amount, status: tx.status,
-      created_at: tx.ts || Date.now()
-    });
-    if (error) console.error('addTransaction error:', error);
-    return !error;
+    try {
+      const ts = tx.ts ? new Date(tx.ts).toISOString() : new Date().toISOString();
+      const row = { id: tx.id, customer_hp: hp, type: tx.type, desc: tx.desc, amount: tx.amount, status: tx.status, created_at: ts };
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) { const t = await res.text(); console.error('addTransaction error:', res.status, t); return false; }
+      return true;
+    } catch(e) { console.error('addTransaction exception:', e.message || e); return false; }
   },
 
   // --- Update status transaksi ---
@@ -1265,14 +1297,16 @@ const DB = {
 
   // --- Simpan topup request ---
   async saveTopupRequest(req) {
-    const { error } = await _supa.from('topup_requests').insert({
-      id: req.txId, customer_hp: req.userHp,
-      customer_name: req.userName, amount: req.amount,
-      method: req.method, status: req.status,
-      bukti: req.bukti || null,
-      created_at: req.ts || Date.now()
-    });
-    if (error) console.error('saveTopupRequest error:', error);
+    try {
+      const ts2 = req.ts ? new Date(req.ts).toISOString() : new Date().toISOString();
+      const row = { id: req.txId, customer_hp: req.userHp, customer_name: req.userName, amount: req.amount, method: req.method, status: req.status, bukti: req.bukti || null, created_at: ts2 };
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/topup_requests`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) { const t = await res.text(); console.error('saveTopupRequest error:', res.status, t); }
+    } catch(e) { console.error('saveTopupRequest exception:', e.message || e); }
   }
 };
 
@@ -2056,8 +2090,13 @@ async function doChangePassword() {
    NAVIGATION
 ============================================================ */
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  target.style.display = '';
+  target.classList.add('active');
 }
 
 function switchPane(id) {
