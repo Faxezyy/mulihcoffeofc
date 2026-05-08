@@ -1395,7 +1395,11 @@ async function doRegister() {
     saldo: 0, points: 0, memberPlan: 'bronze',
     createdAt: Date.now(), transactions: []
   };
-  await DB.saveUser(newUser);
+  const saved = await DB.saveUser(newUser);
+  if (!saved) {
+    toast('❌ Gagal mendaftar, coba lagi!');
+    return;
+  }
   document.getElementById('regNama').value  = '';
   document.getElementById('regHp').value    = '';
   document.getElementById('regEmail').value = '';
