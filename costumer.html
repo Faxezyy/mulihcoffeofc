@@ -1290,10 +1290,11 @@ const DB = {
   async addTransaction(hp, tx) {
     try {
       const ts = tx.ts ? new Date(tx.ts).toISOString() : new Date().toISOString();
-      const row = { customer_hp: hp, type: tx.type, description: tx.desc, amount: tx.amount, status: tx.status, created_at: ts };
+      // Sertakan id custom agar polling bisa query by id
+      const row = { id: tx.id, customer_hp: hp, type: tx.type, description: tx.desc, amount: tx.amount, status: tx.status, created_at: ts };
       const res = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify(row)
       });
       if (!res.ok) { const t = await res.text(); console.error('addTransaction error:', res.status, t); return false; }
@@ -1310,10 +1311,10 @@ const DB = {
   async saveTopupRequest(req) {
     try {
       const ts2 = req.ts ? new Date(req.ts).toISOString() : new Date().toISOString();
-      const row = { customer_hp: req.userHp, amount: req.amount, status: req.status, bukti: req.bukti || null, created_at: ts2 };
+      const row = { customer_hp: req.userHp, amount: req.amount, status: req.status, method: req.method || 'qris', bukti: req.bukti || null, created_at: ts2 };
       const res = await fetch(`${SUPABASE_URL}/rest/v1/topup_requests`, {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify(row)
       });
       if (!res.ok) { const t = await res.text(); console.error('saveTopupRequest error:', res.status, t); }
@@ -2104,32 +2105,40 @@ async function confirmTopup() {
   refreshDash();
 }
 
-/* ── Polling: cek status transaksi setiap 3 detik ── */
+/* ── Polling: cek status topup_request setiap 3 detik ── */
 let _topupPollInterval = null;
 
 async function startTopupPolling(txId, hp) {
   stopTopupPolling();
+  // Simpan amount untuk query — ambil dari selectedTopup sebelum direset
+  const pollAmount = selectedTopup;
   _topupPollInterval = setInterval(async () => {
     try {
-      const { data } = await _supa
-        .from('transactions')
+      // Query topup_requests: cari by hp + amount, ambil yang terbaru
+      const { data, error } = await _supa
+        .from('topup_requests')
         .select('status')
-        .eq('id', txId)
-        .single();
-      if (!data) return;
+        .eq('customer_hp', hp)
+        .eq('amount', pollAmount)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (data.status === 'verified') {
+      if (error || !data || data.length === 0) return; // abaikan, coba lagi
+      const status = data[0].status;
+
+      if (status === 'verified') {
         stopTopupPolling();
         document.getElementById('topupModal').classList.remove('active');
         _resetTopupModalState();
         toast('🎉 Top Up berhasil! Saldo sudah masuk ke akun kamu!');
         refreshDash();
-      } else if (data.status === 'rejected') {
+      } else if (status === 'rejected') {
         stopTopupPolling();
         document.getElementById('topupModal').classList.remove('active');
         _resetTopupModalState();
         toast('❌ Top Up ditolak oleh QRIS Manager.');
       }
+      // status === 'pending' → lanjut polling
     } catch (e) { /* abaikan error sementara */ }
   }, 3000);
 }
