@@ -378,8 +378,7 @@
   </div>
   <div class="top-nav">
     <a href="index.html"><span>Home</span></a>
-    <a href="admin.html"><span>Admin</span></a>
-    <a href="payment-verify.html"><span>AI Verify</span></a>
+    <a href="admin.html" style="background:var(--yellow);color:var(--brown);border-radius:8px;padding:6px 14px;font-weight:800;border:2px solid var(--brown);"><span>🔐 Admin</span></a>
     <button onclick="doLogout()" id="btnLogout" style="display:none">↩️ Logout</button>
   </div>
 </div>
@@ -421,7 +420,7 @@
       <div class="stat-card purple">
         <div class="stat-card-icon">💰</div>
         <div class="stat-card-num" id="statSaldo">Rp0</div>
-        <div class="stat-card-label">Saldo QRIS</div>
+        <div class="stat-card-label">Total Diterima</div>
       </div>
     </div>
 
@@ -1287,6 +1286,18 @@ function renderStats() {
   // Pending = topup_requests pending dari DB + PERLU_REVIEW dari qris_transactions
   const qrisPending = txnLog.filter(t => t.status === 'PERLU_REVIEW').length;
   document.getElementById('statPending').textContent = _pendingTopupCount + qrisPending;
+
+  // Total saldo = jumlah semua nominal transaksi TERVERIFIKASI
+  const totalVerified = txnLog
+    .filter(t => t.status === 'TERVERIFIKASI')
+    .reduce((sum, t) => sum + (Number(t.nominal) || 0), 0);
+  const fmtSaldo = totalVerified >= 1000000
+    ? `${(totalVerified/1000000).toFixed(1)}jt`
+    : totalVerified >= 1000
+      ? `${Math.round(totalVerified/1000)}K`
+      : `Rp${totalVerified.toLocaleString('id-ID')}`;
+  document.getElementById('statSaldo').textContent = fmtSaldo;
+
   updateSaldoDisplay();
 }
 
