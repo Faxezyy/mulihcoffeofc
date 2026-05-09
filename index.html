@@ -52,7 +52,7 @@
           <circle cx="11" cy="8.5" r="3.5" fill="#fff8ee"/>
           <path d="M3.5 18c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5" stroke="#fff8ee" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
-        <span>Login</span>
+        <span>Mulih</span>
       </a>
       <button class="btn-cart" id="cartBtn" aria-label="Cart">
         🛒 <span class="cart-badge" id="cartBadge">0</span>
@@ -756,37 +756,33 @@
   </div>
 
   <!-- VERIFICATION MODAL (muncul di struk untuk transfer/qris) -->
-  <div class="modal-overlay" id="verifyModal">
-    <div class="modal-box verify-box">
-      <div class="modal-header" style="background:var(--brown);color:var(--yellow);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-        <h3>🔐 Verifikasi Pembayaran</h3>
-        <button class="modal-close" onclick="document.getElementById('verifyModal').classList.remove('active')">✕</button>
+  <!-- QRIS WAITING MODAL -->
+  <div class="modal-overlay" id="qrisWaitModal">
+    <div class="modal-box" style="max-width:400px;border-radius:var(--radius-lg);overflow:hidden;padding:0;">
+      <div style="background:var(--brown);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:var(--font-title);font-size:20px;color:var(--yellow);letter-spacing:1px;">📱 QRIS PEMBAYARAN</div>
+        <button onclick="cancelQrisWait()" style="background:var(--red);color:white;border:2px solid #000;border-radius:8px;padding:4px 10px;font-weight:800;font-size:13px;cursor:pointer;">Batal</button>
       </div>
-      <div class="verify-body">
-        <div class="verify-order-info" id="verifyOrderInfo"></div>
-        <div class="verify-divider"></div>
-        <div class="verify-section">
-          <div class="verify-icon">⏳</div>
-          <div class="verify-title">Menunggu Verifikasi Admin</div>
-          <div class="verify-desc">Pembayaran kamu sedang diproses. Admin akan memverifikasi dalam <strong>5–15 menit</strong>.</div>
+      <div style="padding:24px 20px;text-align:center;background:var(--cream);">
+        <!-- QR Code -->
+        <div id="qrisWaitQR" style="display:inline-block;padding:14px;border:3px solid #1a1008;border-radius:12px;background:white;box-shadow:4px 4px 0 #1a1008;margin-bottom:14px;"></div>
+        <div style="font-family:var(--font-title);font-size:15px;color:var(--brown-mid);letter-spacing:1px;margin-bottom:4px;">MULIH COFFEE</div>
+        <div style="font-family:var(--font-title);font-size:28px;color:var(--red);letter-spacing:1px;" id="qrisWaitNominal">Rp0</div>
+        <div style="font-size:12px;color:#888;margin-bottom:20px;">Scan dengan GoPay, OVO, Dana, atau m-Banking</div>
+
+        <!-- Status area -->
+        <div id="qrisWaitStatus" style="background:#fff8e0;border:2px solid #c07c00;border-radius:10px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:28px;margin-bottom:6px;" id="qrisWaitIcon">⏳</div>
+          <div style="font-family:var(--font-title);font-size:16px;color:var(--brown);letter-spacing:1px;" id="qrisWaitText">Menunggu Pembayaran...</div>
+          <div style="font-size:12px;color:#888;margin-top:4px;" id="qrisWaitSub">Scan QR di atas atau bayar via dompet Mulih</div>
         </div>
-        <div class="verify-code-box">
-          <div class="vc-label">Kode Verifikasi Ordermu</div>
-          <div class="vc-code" id="vcCode">–</div>
-          <div class="vc-hint">Simpan kode ini! Gunakan untuk cek status order kamu.</div>
-          <button class="btn-copy-bank" onclick="copyVerifyCode()" style="width:100%;margin-top:8px;">📋 Salin Kode</button>
-        </div>
-        <div class="verify-divider"></div>
-        <div class="verify-section">
-          <div class="verify-title" style="font-size:15px">🔍 Cek Status Order</div>
-          <div class="verify-input-wrap">
-            <input type="text" id="checkCodeInput" placeholder="Masukkan kode verifikasi..." />
-            <button class="btn-apply-promo" onclick="checkOrderStatus()">CEK</button>
-          </div>
-          <div class="verify-result" id="verifyResult"></div>
-        </div>
-        <button class="btn-primary pop-btn" style="width:100%;margin-top:16px" onclick="document.getElementById('verifyModal').classList.remove('active');showToast('✅ Pesanan dicatat! Tunggu verifikasi admin ya.')">
-          OK, Tutup
+
+        <!-- Countdown -->
+        <div style="font-size:12px;color:#aaa;font-weight:700;" id="qrisCountdown">Batas waktu: 2:00</div>
+
+        <!-- Processing button (disabled) -->
+        <button id="qrisWaitBtn" disabled style="width:100%;margin-top:14px;padding:14px;background:#888;color:white;border:3px solid #1a1008;border-radius:10px;font-family:var(--font-title);font-size:18px;letter-spacing:1px;cursor:not-allowed;box-shadow:3px 3px 0 #1a1008;">
+          ⏳ MEMPROSES PEMBAYARAN...
         </button>
       </div>
     </div>
@@ -806,6 +802,7 @@
   <button class="back-top" id="backTop" aria-label="Back to top">⬆</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="script.js"></script>
 
   <!-- ============ DEV NAV — hapus saat production ============ -->

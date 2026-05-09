@@ -596,13 +596,22 @@ async function processPayment() {
   const verifyCode = generateVerifyCode();
   const now        = new Date();
 
-  // Status logic:
-  // Cash = langsung verified
-  // QRIS = auto verified (no screenshot needed)
-  // Transfer = verified jika AI berhasil verifikasi, else pending
+  // ── QRIS: buat payment session, tunggu konfirmasi QRIS Manager ──
+  if (payMethod === 'qris') {
+    document.getElementById('checkoutModal').classList.remove('active');
+    _qrisPendingOrderData = {
+      nama, hp, orderType, alamat, catatan,
+      items: JSON.parse(JSON.stringify(cart)),
+      promo: appliedPromo,
+      pricing: { subtotal, ongkir, diskon, total },
+    };
+    await _startQrisWaitFlow(total);
+    return;
+  }
+
+  // ── Cash / Transfer ──
   let initialStatus = 'pending';
   if (payMethod === 'cash') initialStatus = 'verified';
-  else if (payMethod === 'qris') initialStatus = 'verified';  // QRIS auto verified
   else if (payMethod === 'transfer' && transferAIVerified) initialStatus = 'verified';
 
   const orderData = {
@@ -614,43 +623,195 @@ async function processPayment() {
     pricing: { subtotal, ongkir, diskon, total },
     payMethod,
     buktiTransfer: payMethod === 'transfer' ? buktiBase64 : null,
-    aiVerified: payMethod === 'transfer' ? transferAIVerified : (payMethod === 'qris'),
+    aiVerified: payMethod === 'transfer' ? transferAIVerified : false,
     status: initialStatus,
-    adminNote: initialStatus === 'verified' && payMethod !== 'cash' ? `[AI/Auto] Terverifikasi otomatis` : '',
+    adminNote: initialStatus === 'verified' && payMethod !== 'cash' ? '[AI] Terverifikasi otomatis' : '',
     verifiedAt: initialStatus === 'verified' ? now.toISOString() : null,
   };
 
-  // Tambahkan info saldo dompet Mulih jika customer sedang login
+  // Saldo dompet Mulih jika login
   try {
     const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
     if (sess) {
-      // Ambil saldo terbaru dari Supabase
       const { data: custData } = await _supa.from('customers').select('saldo').eq('hp', sess.hp).single();
       if (custData) {
         orderData.saldoSebelum = Number(custData.saldo);
-        orderData.saldoSesudah = Number(custData.saldo); // akan sama kecuali pakai dompet
+        orderData.saldoSesudah = Number(custData.saldo);
       }
     }
   } catch(e) {}
 
   await DB.addOrder(orderData);
-
-  // Reset cart & form
   cart = []; saveCart(); updateCartBadge(); renderCart();
   buktiBase64 = null;
   transferAIVerified = false;
   document.getElementById('checkoutModal').classList.remove('active');
-
-  // Show receipt dulu
   showReceipt(orderData);
-
-  // Kalau bukan cash, setelah receipt close tampilkan verify modal
-  if (payMethod !== 'cash') {
-    pendingVerifyOrder = orderData;
-  }
 }
 
 let pendingVerifyOrder = null;
+
+// ============================================
+// QRIS WAIT FLOW — tunggu konfirmasi dari QRIS Manager
+// ============================================
+let _qrisPendingOrderData = null;
+let _qrisSessionId = null;
+let _qrisPollInterval = null;
+let _qrisTimeoutTimer = null;
+const QRIS_TIMEOUT_MS = 120000; // 2 menit
+
+async function _startQrisWaitFlow(total) {
+  // 1. Buat payment_session di Supabase
+  if (!_supa) { showToast('❌ Koneksi gagal'); return; }
+  const { data: sess, error } = await _supa
+    .from('payment_sessions')
+    .insert({ amount: Number(total), status: 'waiting', created_at: new Date().toISOString() })
+    .select('id')
+    .single();
+
+  if (error || !sess) {
+    showToast('❌ Gagal buat sesi QRIS: ' + (error?.message || 'unknown'));
+    return;
+  }
+  _qrisSessionId = sess.id;
+
+  // 2. Generate QR di modal
+  const qrEl = document.getElementById('qrisWaitQR');
+  qrEl.innerHTML = '';
+  const payload = JSON.stringify({ type: 'mulih-qris-pay', sessionId: sess.id, amount: total });
+  try {
+    new QRCode(qrEl, { text: payload, width: 180, height: 180, colorDark: '#1a1008', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  } catch(e) {
+    qrEl.innerHTML = `<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;border:2px dashed #c07c3a;border-radius:8px;font-size:13px;color:#888;text-align:center;">QR tersedia<br/>ID: ${sess.id.slice(0,8)}</div>`;
+  }
+
+  document.getElementById('qrisWaitNominal').textContent = 'Rp' + total.toLocaleString('id-ID');
+  _setQrisWaitStatus('waiting');
+
+  // 3. Tampilkan modal
+  document.getElementById('qrisWaitModal').classList.add('active');
+
+  // 4. Countdown 2 menit
+  let remaining = QRIS_TIMEOUT_MS;
+  const countdownEl = document.getElementById('qrisCountdown');
+  const countInterval = setInterval(() => {
+    remaining -= 1000;
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    countdownEl.textContent = `Batas waktu: ${m}:${s.toString().padStart(2,'0')}`;
+    if (remaining <= 0) clearInterval(countInterval);
+  }, 1000);
+
+  // 5. Timeout otomatis
+  _qrisTimeoutTimer = setTimeout(() => {
+    _stopQrisPoll();
+    clearInterval(countInterval);
+    _setQrisWaitStatus('timeout');
+    // Update session jadi expired
+    if (_supa && _qrisSessionId) {
+      _supa.from('payment_sessions').update({ status: 'expired' }).eq('id', _qrisSessionId);
+    }
+  }, QRIS_TIMEOUT_MS);
+
+  // 6. Polling tiap 3 detik cek apakah sudah paid
+  _qrisPollInterval = setInterval(async () => {
+    try {
+      const { data } = await _supa
+        .from('payment_sessions')
+        .select('status, customer_hp, customer_nama, paid_at')
+        .eq('id', _qrisSessionId)
+        .single();
+      if (data && data.status === 'paid') {
+        _stopQrisPoll();
+        clearInterval(countInterval);
+        clearTimeout(_qrisTimeoutTimer);
+        await _onQrisPaid(data, total);
+      }
+    } catch(e) { /* abaikan, coba lagi */ }
+  }, 3000);
+}
+
+function _setQrisWaitStatus(state) {
+  const icon = document.getElementById('qrisWaitIcon');
+  const text = document.getElementById('qrisWaitText');
+  const sub  = document.getElementById('qrisWaitSub');
+  const box  = document.getElementById('qrisWaitStatus');
+  const btn  = document.getElementById('qrisWaitBtn');
+  if (state === 'waiting') {
+    box.style.background = '#fff8e0'; box.style.borderColor = '#c07c00';
+    icon.textContent = '⏳'; text.textContent = 'Menunggu Pembayaran...';
+    sub.textContent = 'Scan QR di atas atau bayar via dompet Mulih kamu';
+    btn.textContent = '⏳ MEMPROSES PEMBAYARAN...'; btn.disabled = true; btn.style.background = '#888';
+  } else if (state === 'paid') {
+    box.style.background = '#e8f9ee'; box.style.borderColor = '#2db86c';
+    icon.textContent = '✅'; text.textContent = 'Pembayaran Diterima!';
+    sub.textContent = 'Sedang memproses pesanan...';
+    btn.textContent = '✅ PEMBAYARAN DITERIMA'; btn.disabled = true; btn.style.background = '#2db86c';
+  } else if (state === 'timeout') {
+    box.style.background = '#fde8e8'; box.style.borderColor = '#e63030';
+    icon.textContent = '❌'; text.textContent = 'Waktu Habis!';
+    sub.textContent = 'Pembayaran tidak diterima dalam 2 menit. Coba lagi.';
+    btn.textContent = '✕ TUTUP'; btn.disabled = false; btn.style.background = '#e63030';
+    btn.style.cursor = 'pointer';
+    btn.onclick = cancelQrisWait;
+  }
+}
+
+async function _onQrisPaid(sessionData, total) {
+  _setQrisWaitStatus('paid');
+
+  // Ambil pending order data
+  const d = _qrisPendingOrderData;
+  if (!d) return;
+
+  const orderNo    = 'MC-' + Date.now().toString().slice(-6);
+  const verifyCode = generateVerifyCode();
+  const now        = new Date();
+
+  const orderData = {
+    orderNo, verifyCode,
+    timestamp: now.toISOString(),
+    customer: { nama: d.nama, hp: d.hp, orderType: d.orderType, alamat: d.alamat, catatan: d.catatan },
+    items: d.items,
+    promo: d.promo,
+    pricing: d.pricing,
+    payMethod: 'qris',
+    buktiTransfer: null,
+    aiVerified: true,
+    status: 'verified',
+    adminNote: '[QRIS] Terkonfirmasi via QRIS Manager',
+    verifiedAt: now.toISOString(),
+  };
+
+  await DB.addOrder(orderData);
+
+  // Reset cart
+  cart = []; saveCart(); updateCartBadge(); renderCart();
+  _qrisPendingOrderData = null;
+
+  // Tutup wait modal, tampilkan struk
+  setTimeout(() => {
+    document.getElementById('qrisWaitModal').classList.remove('active');
+    showReceipt(orderData);
+  }, 800);
+}
+
+function _stopQrisPoll() {
+  if (_qrisPollInterval) { clearInterval(_qrisPollInterval); _qrisPollInterval = null; }
+}
+
+function cancelQrisWait() {
+  _stopQrisPoll();
+  if (_qrisTimeoutTimer) { clearTimeout(_qrisTimeoutTimer); _qrisTimeoutTimer = null; }
+  if (_supa && _qrisSessionId) {
+    _supa.from('payment_sessions').update({ status: 'cancelled' }).eq('id', _qrisSessionId);
+  }
+  _qrisSessionId = null;
+  _qrisPendingOrderData = null;
+  document.getElementById('qrisWaitModal').classList.remove('active');
+  showToast('❌ Pembayaran QRIS dibatalkan.');
+}
+
 
 // ============================================
 // RECEIPT
@@ -725,65 +886,14 @@ function printReceipt() { window.print(); }
 
 function closeReceipt() {
   document.getElementById('receiptModal').classList.remove('active');
-  // Kalau ada pending verify order, tampilkan verify modal
-  if (pendingVerifyOrder) {
-    showVerifyModal(pendingVerifyOrder);
-    pendingVerifyOrder = null;
-  } else {
-    showToast('🎉 Pesanan selesai! Terima kasih sudah order di Mulih Coffee!');
-  }
+  showToast('🎉 Pesanan selesai! Terima kasih sudah order di Mulih Coffee!');
 }
 
 document.getElementById('receiptModal').addEventListener('click', (e) => {
   if (e.target === document.getElementById('receiptModal')) closeReceipt();
 });
 
-// ============================================
-// VERIFY MODAL (customer)
-// ============================================
-function showVerifyModal(order) {
-  document.getElementById('vcCode').textContent = order.verifyCode;
-
-  const pm = payMethodLabel[order.payMethod];
-  const total = `Rp${order.pricing.total.toLocaleString('id-ID')}`;
-  document.getElementById('verifyOrderInfo').innerHTML = `
-    <div class="voi-row"><span>Order</span><span>#${order.orderNo}</span></div>
-    <div class="voi-row"><span>Total</span><span>${total}</span></div>
-    <div class="voi-row"><span>Metode</span><span>${pm}</span></div>
-    ${order.buktiTransfer ? `<div class="voi-row"><span>Bukti</span><span style="color:var(--green)">✅ Terupload</span></div>` : ''}
-  `;
-
-  document.getElementById('verifyModal').classList.add('active');
-}
-
-function copyVerifyCode() {
-  const code = document.getElementById('vcCode').textContent;
-  navigator.clipboard.writeText(code).then(() => showToast(`✅ Kode "${code}" disalin!`));
-}
-
-function checkOrderStatus() {
-  const code   = document.getElementById('checkCodeInput').value.trim().toUpperCase();
-  const result = document.getElementById('verifyResult');
-  if (!code) { result.innerHTML = '<span style="color:var(--red)">Masukkan kode dulu!</span>'; return; }
-
-  const order = DB.getOrderByCode(code);
-  if (!order) {
-    result.innerHTML = '<span style="color:var(--red)">❌ Kode tidak ditemukan.</span>';
-    return;
-  }
-
-  const sl   = statusLabel[order.status];
-  const time = order.verifiedAt ? new Date(order.verifiedAt).toLocaleString('id-ID') : '–';
-  result.innerHTML = `
-    <div class="status-result-box ${sl.cls}">
-      <div class="srb-status">${sl.icon} ${sl.text}</div>
-      <div class="srb-order">#${order.orderNo} — ${order.customer.nama}</div>
-      <div class="srb-total">Rp${order.pricing.total.toLocaleString('id-ID')}</div>
-      ${order.adminNote ? `<div class="srb-note">📝 ${order.adminNote}</div>` : ''}
-      ${order.status !== 'pending' ? `<div class="srb-time">🕐 ${time}</div>` : ''}
-    </div>
-  `;
-}
+// verifyModal removed — QRIS flow now uses qrisWaitModal
 
 // Cart open/close
 document.getElementById('cartBtn').addEventListener('click', () => {
