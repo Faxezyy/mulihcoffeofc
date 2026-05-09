@@ -1202,34 +1202,7 @@
 </div>
 
 
-<!-- DEV NAV -->
-<style>
-  #devNav { position:fixed;bottom:20px;left:16px;z-index:999999;font-family:'Nunito',sans-serif; }
-  #devNavToggle { display:flex;align-items:center;gap:6px;background:#4a2c0a;color:#ffd234;border:3px solid #1a1008;padding:8px 14px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:3px 3px 0 #1a1008;transition:transform .15s,box-shadow .15s;letter-spacing:.5px; }
-  #devNavToggle:hover { transform:translate(-1px,-1px);box-shadow:4px 4px 0 #1a1008; }
-  #devNavMenu { display:none;flex-direction:column;gap:6px;margin-top:8px;min-width:200px; }
-  #devNavMenu.open { display:flex;animation:devNavPop .2s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes devNavPop { from{opacity:0;transform:translateY(8px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-  .devnav-link { display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;font-weight:800;font-size:13px;text-decoration:none;border:2px solid #1a1008;box-shadow:2px 2px 0 #1a1008;transition:transform .15s,box-shadow .15s; }
-  .devnav-link:hover { transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1a1008; }
-  .devnav-link.active-page { outline:2px solid #ffd234;outline-offset:2px; }
-  .devnav-link.ln-index   { background:#fff8ee;color:#4a2c0a; }
-  .devnav-link.ln-admin   { background:#ffd234;color:#1a1008; }
-  .devnav-link.ln-payment { background:#2db86c;color:#fff; }
-  .devnav-link.ln-qris    { background:#c07c3a;color:#fff; }
-  .devnav-link.ln-customer{ background:#e63030;color:#fff; }
-  @media(max-width:600px){#devNav{bottom:90px;left:12px;}}
-</style>
-<div id="devNav">
-  <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')">🛠️ DEV NAV</button>
-  <div id="devNavMenu">
-    <a href="index.html"        class="devnav-link ln-index">Halaman Utama</a>
-    <a href="admin.html"        class="devnav-link ln-admin">Login Admin</a>
-    <a href="qris-manager.html" class="devnav-link ln-qris">QRIS Manager</a>
-    <a href="costumer.html"     class="devnav-link ln-customer active-page">Costumer Login</a>
-  </div>
-</div>
-<script>(function(){document.addEventListener('click',function(e){if(!document.getElementById('devNav').contains(e.target))document.getElementById('devNavMenu').classList.remove('open');});})();</script>
+<!-- DEV NAV: disembunyikan di halaman customer -->
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
@@ -2143,9 +2116,11 @@ async function refreshDash() {
 }
 
 function renderTransactions(user) {
-  const txs = [...(user.transactions || [])].reverse();
+  // Data dari Supabase sudah diurutkan: terbaru pertama (ascending: false)
+  // Jangan di-reverse lagi supaya urutan tetap benar
+  const txs = [...(user.transactions || [])];
 
-  // Recent (5 terakhir)
+  // Recent (5 terakhir = index 0-4, sudah sorted newest first)
   renderTxList('txRecent', txs.slice(0,5));
   // All
   renderTxList('txAll', txs);

@@ -620,6 +620,19 @@ async function processPayment() {
     verifiedAt: initialStatus === 'verified' ? now.toISOString() : null,
   };
 
+  // Tambahkan info saldo dompet Mulih jika customer sedang login
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+    if (sess) {
+      // Ambil saldo terbaru dari Supabase
+      const { data: custData } = await _supa.from('customers').select('saldo').eq('hp', sess.hp).single();
+      if (custData) {
+        orderData.saldoSebelum = Number(custData.saldo);
+        orderData.saldoSesudah = Number(custData.saldo); // akan sama kecuali pakai dompet
+      }
+    }
+  } catch(e) {}
+
   await DB.addOrder(orderData);
 
   // Reset cart & form
@@ -685,10 +698,24 @@ function showReceipt(order) {
   `;
 
   const sl = statusLabel[order.status];
+
+  // Cek apakah ada saldo info dari dompet Mulih
+  let saldoInfo = '';
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+    if (sess && order.saldoSebelum != null && order.saldoSesudah != null) {
+      saldoInfo = `
+        <br/><strong>Saldo Mulih Sebelum:</strong> Rp${Number(order.saldoSebelum).toLocaleString('id-ID')}
+        <br/><strong>Saldo Mulih Sesudah:</strong> <span style="color:#2db86c;font-weight:800;">Rp${Number(order.saldoSesudah).toLocaleString('id-ID')}</span>
+      `;
+    }
+  } catch(e) {}
+
   document.getElementById('receiptPayment').innerHTML = `
     <strong>Pembayaran:</strong> ${payMethodLabel[order.payMethod]}<br/>
     <strong>Status:</strong> <span class="receipt-status ${sl.cls}">${sl.icon} ${sl.text}</span>
     ${order.payMethod !== 'cash' ? `<br/><strong>Kode Verifikasi:</strong> <span class="verify-code-inline">${order.verifyCode}</span>` : ''}
+    ${saldoInfo}
   `;
 
   document.getElementById('receiptModal').classList.add('active');
