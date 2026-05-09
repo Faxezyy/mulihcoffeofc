@@ -64,6 +64,24 @@
     </div>
   </nav>
 
+  <!-- ═══ MULIH WALLET BAR (muncul kalau sudah login) ═══ -->
+  <div id="mulihWalletBar" style="display:none;position:fixed;top:70px;left:0;right:0;z-index:900;background:linear-gradient(90deg,#3b1f0a,#5a3015);border-bottom:3px solid #1a1008;box-shadow:0 4px 0 #1a1008;padding:10px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+      <div style="width:38px;height:38px;background:#c07c3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:18px;color:white;font-weight:900;flex-shrink:0;" id="wbarAvatar">M</div>
+      <div style="min-width:0;">
+        <div style="font-family:var(--font-title);font-size:11px;color:#c9b89a;letter-spacing:1px;">HALO, <span id="wbarName" style="color:#f5e9d0;">USER</span> ☕</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="font-family:var(--font-title);font-size:16px;color:#f5c842;letter-spacing:1px;" id="wbarSaldo">Rp0</div>
+          <div style="font-size:10px;background:#c07c3a;color:white;padding:2px 7px;border-radius:20px;font-weight:800;border:1.5px solid #fff;" id="wbarTier">BRONZE</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <a href="costumer.html" style="font-size:11px;font-weight:800;color:#f5e9d0;text-decoration:none;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);padding:5px 10px;border-radius:8px;">Dompet →</a>
+      <button onclick="openWalletPayCheckout()" style="font-family:var(--font-title);font-size:12px;letter-spacing:1px;background:#f5c842;color:#1a1008;border:2px solid #1a1008;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:900;box-shadow:2px 2px 0 #1a1008;" id="wbarPayBtn">⚡ BAYAR SALDO</button>
+    </div>
+  </div>
+
   <!-- HERO -->
   <section class="hero" id="home">
     <div class="hero-bg-dots"></div>
@@ -574,6 +592,11 @@
               <span class="pm-icon">📱</span>
               <span class="pm-label">QRIS</span>
             </label>
+            <label class="payment-method-btn" data-method="wallet" id="walletPayMethod" style="display:none;">
+              <input type="radio" name="payMethod" value="wallet" />
+              <span class="pm-icon">⚡</span>
+              <span class="pm-label">Dompet Mulih</span>
+            </label>
           </div>
 
           <!-- Panel QRIS -->
@@ -606,6 +629,19 @@
               </div>
               <div class="qris-nominal" id="qrisNominal">Rp0</div>
               <div class="qris-note">Scan dengan GoPay, OVO, Dana, atau m-Banking</div>
+            </div>
+          </div>
+
+          <!-- Panel Dompet Mulih -->
+          <div class="payment-panel" id="panelWallet" style="display:none;">
+            <div style="background:#f0faf5;border:2px solid #2db86c;border-radius:12px;padding:18px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:8px;">⚡</div>
+              <div style="font-family:var(--font-title);font-size:16px;color:#1a6640;letter-spacing:1px;margin-bottom:4px;">BAYAR PAKAI DOMPET MULIH</div>
+              <div style="font-size:13px;color:#2db86c;font-weight:800;margin-bottom:8px;" id="walletPaySaldo">Saldo: Rp0</div>
+              <div style="font-size:12px;color:#555;">Saldo akan langsung dipotong saat kamu klik bayar. Cepat, mudah, tanpa ribet!</div>
+              <div id="walletPayInsufficient" style="display:none;margin-top:10px;padding:8px 12px;background:#fde8e8;border:2px solid #e63030;border-radius:8px;font-size:12px;color:#c00;font-weight:800;">
+                ⚠️ Saldo tidak cukup! <a href="costumer.html" style="color:#c00;text-decoration:underline;">Top up dulu yuk →</a>
+              </div>
             </div>
           </div>
 
@@ -738,6 +774,9 @@
 
         <!-- Countdown -->
         <div style="font-size:12px;color:#aaa;font-weight:700;" id="qrisCountdown">Batas waktu: 2:00</div>
+        <a href="costumer.html?tab=scan" id="qrisGoToWallet" style="display:block;margin-top:10px;padding:10px;background:#3b1f0a;color:#f5e9d0;border:2px solid #1a1008;border-radius:10px;font-family:var(--font-title);font-size:14px;letter-spacing:1px;text-align:center;text-decoration:none;box-shadow:2px 2px 0 #1a1008;">
+          📲 Bayar via Dompet Mulih →
+        </a>
 
         <!-- Processing button (disabled) -->
         <button id="qrisWaitBtn" disabled style="width:100%;margin-top:14px;padding:14px;background:#888;color:white;border:3px solid #1a1008;border-radius:10px;font-family:var(--font-title);font-size:18px;letter-spacing:1px;cursor:not-allowed;box-shadow:3px 3px 0 #1a1008;">

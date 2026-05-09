@@ -312,6 +312,15 @@ function checkout() {
   document.getElementById('checkoutCatatan').value = '';
   document.getElementById('checkoutAlamat').value = '';
 
+  // Auto-fill dari session Mulih jika sudah login
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+    if (sess) {
+      document.getElementById('checkoutNama').value = sess.nama || '';
+      document.getElementById('checkoutHP').value = sess.hp || '';
+    }
+  } catch(e) {}
+
   // Reset order type to dine-in
   document.querySelector('input[name="orderType"][value="dine-in"]').checked = true;
   document.getElementById('alamatGroup').style.display = 'none';
@@ -322,6 +331,10 @@ function checkout() {
   document.querySelector('.payment-method-btn[data-method="cash"]').classList.add('active');
   document.getElementById('panelQris').style.display = 'none';
   document.getElementById('panelTransfer').style.display = 'none';
+  if (document.getElementById('panelWallet')) document.getElementById('panelWallet').style.display = 'none';
+
+  // Tampilkan opsi Dompet Mulih jika sudah login
+  _initWalletPayOption();
 
   renderCheckoutSummary();
   updateCheckoutTotal();
@@ -401,6 +414,10 @@ document.querySelectorAll('.payment-method-btn').forEach(btn => {
     const method = btn.dataset.method;
     document.getElementById('panelQris').style.display = method === 'qris' ? 'block' : 'none';
     document.getElementById('panelTransfer').style.display = method === 'transfer' ? 'block' : 'none';
+    if (document.getElementById('panelWallet')) {
+      document.getElementById('panelWallet').style.display = method === 'wallet' ? 'block' : 'none';
+      if (method === 'wallet') _refreshWalletPayPanel();
+    }
     updateCheckoutTotal();
   });
 });
@@ -595,6 +612,12 @@ async function processPayment() {
   const orderNo    = 'MC-' + Date.now().toString().slice(-6);
   const verifyCode = generateVerifyCode();
   const now        = new Date();
+
+  // ── Dompet Mulih: langsung potong saldo ──
+  if (payMethod === 'wallet') {
+    await _processWalletPayment({ nama, hp, orderType, alamat, catatan, subtotal, ongkir, diskon, total, orderNo, verifyCode, now });
+    return;
+  }
 
   // ── QRIS: buat payment session, tunggu konfirmasi QRIS Manager ──
   if (payMethod === 'qris') {
@@ -1201,3 +1224,152 @@ window.addEventListener('resize', () => {
 console.log('%c☕ MULIH COFFEE', 'font-size:28px;font-weight:bold;color:#7a4418;');
 console.log('%cPulih dengan Mulih Coffee 🌿', 'font-size:14px;color:#c07c3a;');
 console.log('%c© 2024 Mulih Coffee. All rights reserved.', 'font-size:11px;color:#888;');
+
+// ============================================
+// MULIH WALLET — Session & Bar
+// ============================================
+let _walletUser = null; // cache user data setelah login
+
+async function _loadWalletSession() {
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+    if (!sess || !sess.hp) { _hideWalletBar(); return; }
+    if (!_supa) { _hideWalletBar(); return; }
+    const { data } = await _supa.from('customers').select('nama,hp,saldo,points,member_plan').eq('hp', sess.hp).single();
+    if (!data) { _hideWalletBar(); return; }
+    _walletUser = data;
+    _renderWalletBar(data);
+  } catch(e) { _hideWalletBar(); }
+}
+
+function _renderWalletBar(user) {
+  const bar = document.getElementById('mulihWalletBar');
+  if (!bar) return;
+  bar.style.display = 'flex';
+  const initial = (user.nama || 'M').charAt(0).toUpperCase();
+  const saldo   = Number(user.saldo || 0);
+  const tier    = (user.member_plan || 'bronze').toUpperCase();
+  document.getElementById('wbarAvatar').textContent = initial;
+  document.getElementById('wbarName').textContent   = (user.nama || '').split(' ')[0];
+  document.getElementById('wbarSaldo').textContent  = 'Rp' + saldo.toLocaleString('id-ID');
+  document.getElementById('wbarTier').textContent   = tier;
+  // Tambah padding ke body agar konten tidak tertutup bar
+  document.body.style.paddingTop = '116px';
+}
+
+function _hideWalletBar() {
+  const bar = document.getElementById('mulihWalletBar');
+  if (bar) bar.style.display = 'none';
+}
+
+// Buka checkout dengan metode Dompet Mulih langsung ter-select
+function openWalletPayCheckout() {
+  // Buka cart dulu kalau kosong, kalau tidak langsung checkout
+  if (!cart || cart.length === 0) {
+    showToast('🛒 Keranjang masih kosong! Pilih menu dulu ya.');
+    document.querySelector('#menu') && document.querySelector('#menu').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  // Buka checkout modal
+  document.getElementById('cartModal').classList.remove('active');
+  openCheckoutModal();
+  // Auto-select wallet
+  setTimeout(() => {
+    const walletBtn = document.querySelector('.payment-method-btn[data-method="wallet"]');
+    if (walletBtn) walletBtn.click();
+  }, 80);
+}
+
+// Init: tampilkan/sembunyikan opsi wallet di checkout
+function _initWalletPayOption() {
+  const walletMethod = document.getElementById('walletPayMethod');
+  if (!walletMethod) return;
+  const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+  walletMethod.style.display = sess ? 'inline-flex' : 'none';
+}
+
+// Refresh saldo info di panel wallet checkout
+async function _refreshWalletPayPanel() {
+  if (!_walletUser) await _loadWalletSession();
+  const saldoEl = document.getElementById('walletPaySaldo');
+  const insuffEl = document.getElementById('walletPayInsufficient');
+  if (!saldoEl) return;
+  const saldo = Number(_walletUser?.saldo || 0);
+  saldoEl.textContent = 'Saldo: Rp' + saldo.toLocaleString('id-ID');
+  // Cek apakah cukup
+  const { total } = updateCheckoutTotal();
+  if (insuffEl) insuffEl.style.display = saldo < total ? 'block' : 'none';
+}
+
+// ============================================
+// WALLET PAYMENT PROCESSOR
+// ============================================
+async function _processWalletPayment({ nama, hp, orderType, alamat, catatan, subtotal, ongkir, diskon, total, orderNo, verifyCode, now }) {
+  if (!_walletUser) {
+    showToast('❌ Data akun tidak ditemukan. Coba refresh halaman.');
+    return;
+  }
+  const saldo = Number(_walletUser.saldo || 0);
+  if (saldo < total) {
+    showToast('⚠️ Saldo tidak cukup! Top up dulu di halaman Dompet.');
+    return;
+  }
+
+  showToast('⏳ Memproses pembayaran...');
+
+  // 1. Deduct saldo di Supabase
+  const saldoBaru = saldo - total;
+  const { error: updateErr } = await _supa
+    .from('customers')
+    .update({ saldo: saldoBaru })
+    .eq('hp', _walletUser.hp);
+
+  if (updateErr) {
+    showToast('❌ Gagal memproses pembayaran: ' + updateErr.message);
+    return;
+  }
+
+  // 2. Catat transaksi di tabel transactions
+  await _supa.from('transactions').insert({
+    customer_hp: _walletUser.hp,
+    type: 'payment',
+    description: 'Pembayaran Order ' + orderNo,
+    amount: -total,
+    status: 'success',
+    created_at: now.toISOString()
+  });
+
+  // 3. Update cache lokal
+  _walletUser.saldo = saldoBaru;
+  _renderWalletBar(_walletUser);
+
+  // 4. Buat order data
+  const orderData = {
+    orderNo, verifyCode,
+    timestamp: now.toISOString(),
+    customer: { nama: nama || _walletUser.nama, hp: hp || _walletUser.hp, orderType, alamat, catatan },
+    items: JSON.parse(JSON.stringify(cart)),
+    promo: appliedPromo,
+    pricing: { subtotal, ongkir, diskon, total },
+    payMethod: 'wallet',
+    buktiTransfer: null,
+    aiVerified: true,
+    status: 'verified',
+    adminNote: '[WALLET] Dibayar via Dompet Mulih - ' + _walletUser.hp,
+    verifiedAt: now.toISOString(),
+    saldoSebelum: saldo,
+    saldoSesudah: saldoBaru,
+  };
+
+  await DB.addOrder(orderData);
+  cart = []; saveCart(); updateCartBadge(); renderCart();
+  document.getElementById('checkoutModal').classList.remove('active');
+  showReceipt(orderData);
+}
+
+// ============================================
+// INIT WALLET BAR ON PAGE LOAD
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  _loadWalletSession();
+});

@@ -967,7 +967,7 @@
       </div>
 
       <!-- Scan QRIS Bayar -->
-      <div class="section-card" style="margin-top:16px;margin-bottom:16px;" id="scanPaySection" style="display:none;">
+      <div class="section-card" style="margin-top:16px;" id="scanPaySection" style="display:none;">
         <div class="section-head">
           <div class="section-head-title">📱 SCAN QRIS BAYAR</div>
         </div>
@@ -986,6 +986,56 @@
           </div>
           <div id="scanPayResultBox" class="scan-result-box">
             <div id="scanPayResult">–</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Upload QRIS dari Screenshot ── -->
+      <div class="section-card" style="margin-top:16px;margin-bottom:16px;">
+        <div class="section-head">
+          <div class="section-head-title">🖼️ UPLOAD KODE QRIS</div>
+        </div>
+        <div style="padding:16px 18px;">
+          <div style="font-size:13px;color:#666;margin-bottom:14px;line-height:1.5;">
+            Screenshot atau download kode QR dari halaman checkout Mulih Coffee, lalu upload di sini. Sistem akan membaca QR dan memproses pembayaran otomatis.
+          </div>
+
+          <!-- Upload area -->
+          <label id="qrisUploadArea" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;border:3px dashed #c07c3a;border-radius:16px;background:#fff8f0;cursor:pointer;transition:background 0.2s;gap:8px;" onmouseover="this.style.background='#ffeedd'" onmouseout="this.style.background='#fff8f0'">
+            <div style="font-size:36px;">📷</div>
+            <div style="font-family:var(--font-title);font-size:14px;color:#7a4a1a;letter-spacing:1px;">TAP UNTUK UPLOAD GAMBAR QR</div>
+            <div style="font-size:11px;color:#aaa;">JPG / PNG — Screenshot kode QRIS dari halaman order</div>
+            <input type="file" id="qrisImageUpload" accept="image/*" style="display:none;" onchange="handleQrisImageUpload(event)"/>
+          </label>
+
+          <!-- Preview gambar -->
+          <div id="qrisUploadPreview" style="display:none;margin-top:14px;text-align:center;">
+            <img id="qrisPreviewImg" src="" alt="QR" style="max-width:200px;max-height:200px;border-radius:12px;border:3px solid #c07c3a;box-shadow:4px 4px 0 #1a1008;"/>
+            <canvas id="qrisDecodeCanvas" style="display:none;"></canvas>
+            <div id="qrisReadResult" style="margin-top:12px;padding:12px;border-radius:10px;border:2px solid #c07c3a;background:white;font-size:13px;text-align:left;"></div>
+          </div>
+
+          <!-- Tombol bayar -->
+          <div id="qrisPayConfirm" style="display:none;margin-top:14px;">
+            <div id="qrisPayInfo" style="padding:14px;background:#f0faf5;border:2px solid #2db86c;border-radius:10px;margin-bottom:12px;">
+              <div style="font-family:var(--font-title);font-size:13px;color:#1a6640;letter-spacing:1px;margin-bottom:4px;">DETAIL PEMBAYARAN</div>
+              <div style="font-size:13px;color:#333;" id="qrisPayDetail"></div>
+              <div style="font-family:var(--font-title);font-size:18px;color:var(--red);margin-top:6px;" id="qrisPayAmount"></div>
+            </div>
+            <div id="qrisWalletSaldoInfo" style="padding:10px 14px;background:#fff8e0;border:2px solid #c07c00;border-radius:8px;font-size:12px;color:#7a4a1a;margin-bottom:12px;font-weight:700;"></div>
+            <button onclick="confirmQrisUploadPayment()" style="width:100%;padding:14px;background:#2db86c;color:white;border:3px solid #1a1008;border-radius:12px;font-family:var(--font-title);font-size:18px;letter-spacing:1px;cursor:pointer;box-shadow:3px 3px 0 #1a1008;font-weight:900;">
+              ✅ BAYAR SEKARANG
+            </button>
+            <button onclick="resetQrisUpload()" style="width:100%;margin-top:8px;padding:10px;background:none;color:#e63030;border:2px solid #e63030;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;">
+              ✕ Batal / Upload Ulang
+            </button>
+          </div>
+
+          <!-- Status pembayaran -->
+          <div id="qrisPayStatus" style="display:none;margin-top:14px;padding:16px;border-radius:12px;text-align:center;border:3px solid #1a1008;box-shadow:3px 3px 0 #1a1008;">
+            <div style="font-size:36px;margin-bottom:8px;" id="qrisPayStatusIcon">⏳</div>
+            <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;" id="qrisPayStatusText">Memproses...</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;" id="qrisPayStatusSub"></div>
           </div>
         </div>
       </div>
@@ -2430,6 +2480,170 @@ function clearErrors(ids) { ids.forEach(id => document.getElementById(id).textCo
 // Enter key support
 document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('regPass2').addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); });
+
+// ============================================
+// URL PARAM: ?tab=scan → langsung buka pane scan
+// ============================================
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tab') === 'scan') {
+    const trySwitch = setInterval(() => {
+      const dashScreen = document.getElementById('dashScreen');
+      if (dashScreen && dashScreen.classList.contains('active')) {
+        clearInterval(trySwitch);
+        switchPane('paneScan');
+        setNav('navScan');
+        setTimeout(() => {
+          const uploadArea = document.getElementById('qrisUploadArea');
+          if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 400);
+      }
+    }, 200);
+  }
+})();
+
+// ============================================
+// QRIS IMAGE UPLOAD & SCAN
+// ============================================
+let _qrisUploadSession = null;
+
+async function handleQrisImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const img = new Image();
+    img.onload = () => {
+      document.getElementById('qrisPreviewImg').src = e.target.result;
+      document.getElementById('qrisUploadPreview').style.display = 'block';
+      document.getElementById('qrisPayConfirm').style.display = 'none';
+      document.getElementById('qrisPayStatus').style.display = 'none';
+
+      const canvas = document.getElementById('qrisDecodeCanvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const result = window.jsQR ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+      const resultEl = document.getElementById('qrisReadResult');
+
+      if (!result) {
+        resultEl.innerHTML = '<span style="color:#e63030;font-weight:800;">❌ QR tidak terbaca. Pastikan gambar jelas dan QR terlihat penuh.</span>';
+        return;
+      }
+      let parsed = null;
+      try { parsed = JSON.parse(result.data); } catch(err) {}
+      if (!parsed || parsed.type !== 'mulih-qris-pay') {
+        resultEl.innerHTML = '<span style="color:#e63030;font-weight:800;">❌ QR ini bukan kode pembayaran Mulih Coffee yang valid.</span>';
+        return;
+      }
+      resultEl.innerHTML = '<span style="color:#2db86c;font-weight:800;">✅ QR terbaca!</span> Session: <code>' + parsed.sessionId.slice(0,12) + '...</code>';
+      _qrisUploadSession = parsed;
+      _showQrisPayConfirm(parsed);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function _showQrisPayConfirm(parsed) {
+  const sess = DB.getSession();
+  if (!sess) { toast('⚠️ Kamu belum login!'); return; }
+  const user = await DB.getUser(sess.hp);
+  if (!user) { toast('❌ Data akun tidak ditemukan.'); return; }
+
+  const total = Number(parsed.amount || 0);
+  const saldo = Number(user.saldo || 0);
+  const cukup = saldo >= total;
+
+  document.getElementById('qrisPayDetail').textContent = 'Merchant: Mulih Coffee | Session: ' + parsed.sessionId.slice(0,12) + '...';
+  document.getElementById('qrisPayAmount').textContent = 'Total: Rp' + total.toLocaleString('id-ID');
+  document.getElementById('qrisWalletSaldoInfo').innerHTML =
+    'Saldo kamu: <strong>Rp' + saldo.toLocaleString('id-ID') + '</strong>' +
+    (cukup
+      ? ' &nbsp;→&nbsp; <span style="color:#2db86c;">Sisa: Rp' + (saldo - total).toLocaleString('id-ID') + '</span>'
+      : ' <span style="color:#e63030;">— saldo tidak cukup!</span>');
+
+  const payBtn = document.querySelector('#qrisPayConfirm button:first-of-type');
+  payBtn.disabled = !cukup;
+  payBtn.style.background = cukup ? '#2db86c' : '#aaa';
+  payBtn.style.cursor = cukup ? 'pointer' : 'not-allowed';
+  document.getElementById('qrisPayConfirm').style.display = 'block';
+}
+
+async function confirmQrisUploadPayment() {
+  if (!_qrisUploadSession) { toast('❌ Tidak ada sesi QR.'); return; }
+  const sess = DB.getSession();
+  if (!sess) { toast('⚠️ Kamu belum login!'); return; }
+
+  document.getElementById('qrisPayConfirm').style.display = 'none';
+  const statusEl = document.getElementById('qrisPayStatus');
+  statusEl.style.cssText = 'display:block;margin-top:14px;padding:16px;border-radius:12px;text-align:center;border:3px solid #c07c00;background:#fff8e0;box-shadow:3px 3px 0 #1a1008;';
+  document.getElementById('qrisPayStatusIcon').textContent = '⏳';
+  document.getElementById('qrisPayStatusText').textContent = 'Memproses Pembayaran...';
+  document.getElementById('qrisPayStatusSub').textContent = 'Mohon tunggu';
+
+  const total = Number(_qrisUploadSession.amount || 0);
+  const sessionId = _qrisUploadSession.sessionId;
+  const user = await DB.getUser(sess.hp);
+  if (!user || Number(user.saldo) < total) {
+    statusEl.style.borderColor = '#e63030'; statusEl.style.background = '#fde8e8';
+    document.getElementById('qrisPayStatusIcon').textContent = '❌';
+    document.getElementById('qrisPayStatusText').textContent = 'Saldo Tidak Cukup';
+    document.getElementById('qrisPayStatusSub').textContent = 'Top up saldo dulu ya!';
+    return;
+  }
+
+  const saldoBaru = Number(user.saldo) - total;
+
+  // 1. Potong saldo
+  const { error } = await _supa.from('customers').update({ saldo: saldoBaru }).eq('hp', user.hp);
+  if (error) {
+    statusEl.style.borderColor = '#e63030'; statusEl.style.background = '#fde8e8';
+    document.getElementById('qrisPayStatusIcon').textContent = '❌';
+    document.getElementById('qrisPayStatusText').textContent = 'Gagal Memproses';
+    document.getElementById('qrisPayStatusSub').textContent = error.message;
+    return;
+  }
+
+  // 2. Update payment_session jadi paid
+  await _supa.from('payment_sessions').update({
+    status: 'paid',
+    customer_hp: user.hp,
+    customer_nama: user.nama,
+    paid_at: new Date().toISOString()
+  }).eq('id', sessionId);
+
+  // 3. Catat transaksi
+  await DB.addTransaction(user.hp, {
+    type: 'payment',
+    desc: 'Pembayaran QRIS via Upload — Sesi ' + sessionId.slice(0,8),
+    amount: -total,
+    status: 'success',
+    ts: new Date().toISOString()
+  });
+
+  // 4. Update tampilan saldo di dashboard
+  document.getElementById('walletAmount').textContent = fmtRp(saldoBaru);
+
+  // 5. Sukses
+  statusEl.style.borderColor = '#2db86c'; statusEl.style.background = '#e8f9ee';
+  document.getElementById('qrisPayStatusIcon').textContent = '✅';
+  document.getElementById('qrisPayStatusText').textContent = 'Pembayaran Berhasil!';
+  document.getElementById('qrisPayStatusSub').textContent =
+    'Rp' + total.toLocaleString('id-ID') + ' telah dibayarkan. Sisa saldo: Rp' + saldoBaru.toLocaleString('id-ID');
+
+  toast('✅ Pembayaran berhasil! Sesi ' + sessionId.slice(0,8));
+  _qrisUploadSession = null;
+}
+
+function resetQrisUpload() {
+  _qrisUploadSession = null;
+  document.getElementById('qrisImageUpload').value = '';
+  document.getElementById('qrisUploadPreview').style.display = 'none';
+  document.getElementById('qrisPayConfirm').style.display = 'none';
+  document.getElementById('qrisPayStatus').style.display = 'none';
+}
 </script>
 
 </body>
