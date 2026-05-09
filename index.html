@@ -46,6 +46,14 @@
       <li><a href="#kontak" class="nav-link">Kontak</a></li>
     </ul>
     <div class="nav-actions">
+      <a href="costumer.html" class="btn-mulih-profile" id="btnMulihProfile" title="Akun Mulih" aria-label="Akun Customer Mulih">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="10.5" fill="#c07c3a" stroke="#1a1008" stroke-width="1.5"/>
+          <circle cx="11" cy="8.5" r="3.5" fill="#fff8ee"/>
+          <path d="M3.5 18c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5" stroke="#fff8ee" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span>Mulih</span>
+      </a>
       <button class="btn-cart" id="cartBtn" aria-label="Cart">
         🛒 <span class="cart-badge" id="cartBadge">0</span>
       </button>
@@ -92,7 +100,16 @@
       </div>
     </div>
     <div class="hero-visual">
-      <div class="cup-wrapper">
+      <div class="cup-wrapper" style="position:relative">
+        <!-- HIDDEN DEV TRIGGER — badge ? pojok bawah kanan kopi -->
+        <button id="devTriggerBtn" aria-label="Info" title="" onclick="openDevModal()"
+          style="position:absolute;bottom:8px;right:8px;z-index:99;
+                 width:28px;height:28px;border-radius:50%;
+                 background:rgba(74,44,10,0.18);border:2px solid rgba(74,44,10,0.22);
+                 color:rgba(74,44,10,0.35);font-size:14px;font-weight:900;
+                 cursor:pointer;display:flex;align-items:center;justify-content:center;
+                 transition:all 0.2s;backdrop-filter:blur(2px);
+                 font-family:'Nunito',sans-serif;line-height:1;">?</button>
         <div class="comic-panel">
           <div class="panel-zap">POW!</div>
           <div class="big-cup">
@@ -793,93 +810,165 @@
 
   <!-- ============ DEV NAV — hapus saat production ============ -->
   <style>
-    #devNav {
-      position: fixed;
-      bottom: 20px;
-      left: 16px;
-      z-index: 999999;
+    /* Mulih profile button */
+    .btn-mulih-profile {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(192,124,58,0.13);
+      border: 2px solid #c07c3a;
+      border-radius: 99px; padding: 5px 12px 5px 6px;
+      font-weight: 800; font-size: 13px; color: #4a2c0a;
+      text-decoration: none; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-mulih-profile:hover { background: #c07c3a; color: #fff8ee; }
+    .btn-mulih-profile svg { flex-shrink: 0; }
+    @media (max-width:640px) { .btn-mulih-profile span { display:none; } .btn-mulih-profile { padding:5px; border-radius:50%; } }
+
+    /* Dev trigger hover */
+    #devTriggerBtn:hover {
+      background: rgba(74,44,10,0.55) !important;
+      border-color: rgba(74,44,10,0.7) !important;
+      color: #ffd234 !important;
+    }
+
+    /* Dev password modal */
+    #devModal {
+      display: none; position: fixed; inset: 0; z-index: 9999999;
+      background: rgba(26,16,8,0.75); align-items: center; justify-content: center;
       font-family: 'Nunito', sans-serif;
     }
+    #devModal.open { display: flex; }
+    .devmodal-box {
+      background: #fff8ee; border: 3px solid #1a1008;
+      border-radius: 20px; box-shadow: 8px 8px 0 #ffd234;
+      padding: 32px 28px; width: 90%; max-width: 340px;
+      text-align: center; animation: devModalPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes devModalPop { from { opacity:0; transform:scale(0.8) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .devmodal-icon { font-size: 40px; margin-bottom: 6px; }
+    .devmodal-title { font-family:'Bangers',cursive; font-size:28px; color:#4a2c0a; margin-bottom:4px; }
+    .devmodal-sub { font-size:13px; color:#888; margin-bottom:20px; }
+    .devmodal-input {
+      width:100%; padding:12px 14px; border:3px solid #1a1008;
+      border-radius:12px; font-size:16px; font-family:'Nunito',sans-serif;
+      font-weight:700; outline:none; margin-bottom:10px; text-align:center;
+      letter-spacing:2px; background:white;
+    }
+    .devmodal-input:focus { border-color:#c07c3a; box-shadow:3px 3px 0 #c07c3a; }
+    .devmodal-err { color:#e63030; font-size:12px; font-weight:800; min-height:18px; margin-bottom:8px; }
+    .devmodal-btn {
+      width:100%; padding:12px; background:#4a2c0a; color:#ffd234;
+      border:3px solid #1a1008; border-radius:12px;
+      font-family:'Bangers',cursive; font-size:22px;
+      cursor:pointer; box-shadow:4px 4px 0 #1a1008; transition:all 0.15s;
+    }
+    .devmodal-btn:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 #1a1008; }
+    .devmodal-cancel { margin-top:10px; font-size:12px; color:#aaa; cursor:pointer; }
+    .devmodal-cancel:hover { color:#4a2c0a; }
+
+    /* Dev Nav floating (tersembunyi, muncul setelah unlock) */
+    #devNav {
+      position: fixed; bottom: 20px; left: 16px;
+      z-index: 999999; font-family: 'Nunito', sans-serif; display: none;
+    }
+    #devNav.unlocked { display: block; }
     #devNavToggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #4a2c0a;
-      color: #ffd234;
-      border: 3px solid #1a1008;
-      padding: 8px 14px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 13px;
-      cursor: pointer;
-      box-shadow: 3px 3px 0 #1a1008;
-      transition: transform 0.15s, box-shadow 0.15s;
-      letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 6px;
+      background: #4a2c0a; color: #ffd234;
+      border: 3px solid #1a1008; padding: 8px 14px; border-radius: 12px;
+      font-weight: 800; font-size: 13px; cursor: pointer;
+      box-shadow: 3px 3px 0 #1a1008; transition: transform 0.15s, box-shadow 0.15s;
     }
     #devNavToggle:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #1a1008; }
-    #devNavToggle:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1a1008; }
     #devNavMenu {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 8px;
-      min-width: 200px;
+      display: none; flex-direction: column; gap: 6px;
+      margin-top: 8px; min-width: 200px;
     }
     #devNavMenu.open { display: flex; animation: devNavPop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes devNavPop { from { opacity:0; transform:translateY(8px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
     .devnav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 13px;
-      text-decoration: none;
-      border: 2px solid #1a1008;
-      box-shadow: 2px 2px 0 #1a1008;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 10px;
+      font-weight: 800; font-size: 13px; text-decoration: none;
+      border: 2px solid #1a1008; box-shadow: 2px 2px 0 #1a1008;
       transition: transform 0.15s, box-shadow 0.15s;
     }
     .devnav-link:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #1a1008; }
     .devnav-link.active-page { outline: 2px solid #ffd234; outline-offset: 2px; }
-    .devnav-link.ln-index    { background:#fff8ee; color:#4a2c0a; }
-    .devnav-link.ln-admin    { background:#ffd234; color:#1a1008; }
-    .devnav-link.ln-payment  { background:#2db86c; color:#fff; }
-    .devnav-link.ln-qris     { background:#c07c3a; color:#fff; }
-    /* Mobile: pindah ke kanan bawah kalau ada FAB */
-    @media (max-width: 600px) {
-      #devNav { bottom: 80px; left: 12px; }
-      #devNavToggle { font-size: 11px; padding: 6px 10px; }
-      #devNavMenu { min-width: 170px; }
-      .devnav-link { font-size: 12px; padding: 7px 12px; }
+    .devnav-link.ln-index  { background:#fff8ee; color:#4a2c0a; }
+    .devnav-link.ln-admin  { background:#ffd234; color:#1a1008; }
+    .devnav-link.ln-payment{ background:#2db86c; color:#fff; }
+    .devnav-link.ln-qris   { background:#c07c3a; color:#fff; }
+    @media (max-width:600px) {
+      #devNav { bottom:80px; left:12px; }
+      #devNavToggle { font-size:11px; padding:6px 10px; }
+      #devNavMenu { min-width:170px; }
+      .devnav-link { font-size:12px; padding:7px 12px; }
     }
   </style>
 
+  <!-- DEV PASSWORD MODAL -->
+  <div id="devModal">
+    <div class="devmodal-box">
+      <div class="devmodal-icon">🛠️</div>
+      <div class="devmodal-title">DEV ACCESS</div>
+      <div class="devmodal-sub">Masukkan sandi developer untuk lanjut</div>
+      <input type="password" class="devmodal-input" id="devPassInput"
+        placeholder="• • • • • • • •"
+        onkeydown="if(event.key==='Enter')checkDevPass()"
+        autocomplete="off" />
+      <div class="devmodal-err" id="devPassErr"></div>
+      <button class="devmodal-btn" onclick="checkDevPass()">MASUK ⚡</button>
+      <div class="devmodal-cancel" onclick="closeDevModal()">✕ Batal</div>
+    </div>
+  </div>
+
+  <!-- DEV NAV (muncul setelah unlock) -->
   <div id="devNav">
-    <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')" aria-label="Dev Navigation">
+    <button id="devNavToggle" onclick="document.getElementById('devNavMenu').classList.toggle('open')">
       🛠️ DEV NAV
     </button>
     <div id="devNavMenu" role="menu">
-      <a href="index.html"        class="devnav-link ln-index"   role="menuitem">Halaman Utama</a>
-      <a href="admin.html"        class="devnav-link ln-admin"   role="menuitem">Login Admin</a>
-      <a href="costumer.html"     class="devnav-link ln-payment" role="menuitem">Costumer Login</a>
-      <a href="qris-manager.html" class="devnav-link ln-qris"    role="menuitem">QRIS Manager</a>
+      <a href="index.html"        class="devnav-link ln-index">Halaman Utama</a>
+      <a href="admin.html"        class="devnav-link ln-admin">Login Admin</a>
+      <a href="costumer.html"     class="devnav-link ln-payment">Costumer Login</a>
+      <a href="qris-manager.html" class="devnav-link ln-qris">QRIS Manager</a>
     </div>
   </div>
+
   <script>
-    // Highlight halaman aktif
+    const _DEV_PASS = 'mulihdev';
+    function openDevModal() {
+      document.getElementById('devModal').classList.add('open');
+      setTimeout(() => document.getElementById('devPassInput').focus(), 100);
+    }
+    function closeDevModal() {
+      document.getElementById('devModal').classList.remove('open');
+      document.getElementById('devPassInput').value = '';
+      document.getElementById('devPassErr').textContent = '';
+    }
+    function checkDevPass() {
+      if (document.getElementById('devPassInput').value === _DEV_PASS) {
+        closeDevModal();
+        document.getElementById('devNav').classList.add('unlocked');
+        sessionStorage.setItem('mulihDevUnlocked','1');
+      } else {
+        document.getElementById('devPassErr').textContent = '❌ Sandi salah!';
+        document.getElementById('devPassInput').value = '';
+      }
+    }
+    if (sessionStorage.getItem('mulihDevUnlocked') === '1') {
+      document.getElementById('devNav').classList.add('unlocked');
+    }
     (function(){
       var cur = location.pathname.split('/').pop() || 'index.html';
-      var links = document.querySelectorAll('.devnav-link');
-      links.forEach(function(a){
+      document.querySelectorAll('.devnav-link').forEach(function(a){
         if(a.getAttribute('href') === cur) a.classList.add('active-page');
       });
-      // Tutup menu kalau klik di luar
       document.addEventListener('click', function(e){
-        if(!document.getElementById('devNav').contains(e.target)){
+        if(!document.getElementById('devNav').contains(e.target))
           document.getElementById('devNavMenu').classList.remove('open');
-        }
       });
+      document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDevModal(); });
     })();
   </script>
   <!-- ============ END DEV NAV ============ -->

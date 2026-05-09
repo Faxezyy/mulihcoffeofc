@@ -792,6 +792,20 @@ async function initPanel() {
   renderStats();
   renderTxnLog();
   _renderPendingTopups();
+
+  // ✅ Realtime: langsung detect kalau payment_sessions berubah jadi 'paid'
+  _supa
+    .channel('pay-sessions-watch')
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'payment_sessions'
+    }, (payload) => {
+      const row = payload.new;
+      if (row.status === 'paid' && row.id === _activeSessionId) {
+        _stopPayPoll();
+        _showPaySuccessPopup(row.amount, row.customer_nama || row.customer_hp, row.paid_at, row.customer_hp);
+      }
+    })
+    .subscribe();
 }
 
 // ============================================
@@ -800,6 +814,7 @@ async function initPanel() {
 let _activeSessionId = null;
 let _payPollInterval = null;
 let _pendingTopupCount = 0;
+let _lastPayData = null;   // simpan data payment terakhir buat di-log ke DB
 
 async function setSaldo() {
   const val = parseInt(document.getElementById('saldoInput').value);
@@ -887,7 +902,7 @@ function _startPayPoll(sessionId, amount) {
 
       if (data.status === 'paid') {
         _stopPayPoll();
-        _showPaySuccessPopup(amount, data.customer_nama || data.customer_hp, data.paid_at);
+        _showPaySuccessPopup(amount, data.customer_nama || data.customer_hp, data.paid_at, data.customer_hp);
       }
     } catch(e) { /* retry */ }
   }, 2000);
@@ -897,7 +912,8 @@ function _stopPayPoll() {
   if (_payPollInterval) { clearInterval(_payPollInterval); _payPollInterval = null; }
 }
 
-function _showPaySuccessPopup(amount, customerName, paidAt) {
+function _showPaySuccessPopup(amount, customerName, paidAt, customerHP) {
+  _lastPayData = { amount, customerName: customerName || customerHP, customerHP, paidAt };
   document.getElementById('popupPayNominal').textContent = _fmtRp(amount);
   document.getElementById('popupPayCustomer').textContent = '👤 ' + (customerName || 'Customer');
   const t = paidAt ? new Date(paidAt).toLocaleString('id-ID') : new Date().toLocaleString('id-ID');
@@ -910,6 +926,22 @@ function _showPaySuccessPopup(amount, customerName, paidAt) {
 
 async function confirmPaySuccessOk() {
   document.getElementById('paySuccessOverlay').style.display = 'none';
+
+  // ✅ Simpan ke qris_transactions agar masuk ke riwayat & statistik
+  if (_lastPayData) {
+    try {
+      await _supa.from('qris_transactions').insert({
+        order_code:  'SCAN-' + (_lastPayData.customerHP || 'QRIS-' + Date.now()),
+        nominal:     Number(_lastPayData.amount),
+        status:      'TERVERIFIKASI',
+        confidence:  100,
+        sender:      _lastPayData.customerName || _lastPayData.customerHP || 'Customer',
+        created_at:  new Date(_lastPayData.paidAt || Date.now()).toISOString()
+      });
+    } catch(e) { console.error('Gagal log transaksi:', e); }
+    _lastPayData = null;
+  }
+
   // Reset saldo ke 0
   qrisSaldo = 0;
   document.getElementById('saldoInput').value = '';
