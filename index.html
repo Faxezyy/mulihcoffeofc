@@ -580,69 +580,18 @@
           <div class="payment-panel" id="panelQris" style="display:none">
             <div class="qris-box">
               <div class="qris-title">Scan QR untuk Bayar</div>
-              <div class="qris-code">
-                <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- QR decorative pattern -->
-                  <rect width="140" height="140" fill="white" rx="8"/>
-                  <rect x="8" y="8" width="40" height="40" rx="4" fill="#1a1008"/>
-                  <rect x="13" y="13" width="30" height="30" rx="2" fill="white"/>
-                  <rect x="18" y="18" width="20" height="20" rx="1" fill="#1a1008"/>
-                  <rect x="92" y="8" width="40" height="40" rx="4" fill="#1a1008"/>
-                  <rect x="97" y="13" width="30" height="30" rx="2" fill="white"/>
-                  <rect x="102" y="18" width="20" height="20" rx="1" fill="#1a1008"/>
-                  <rect x="8" y="92" width="40" height="40" rx="4" fill="#1a1008"/>
-                  <rect x="13" y="97" width="30" height="30" rx="2" fill="white"/>
-                  <rect x="18" y="102" width="20" height="20" rx="1" fill="#1a1008"/>
-                  <!-- Data modules -->
-                  <rect x="56" y="8" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="8" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="8" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="20" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="20" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="32" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="32" width="8" height="8" fill="#1a1008"/>
-                  <rect x="8" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="20" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="32" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="44" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="116" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="56" width="8" height="8" fill="#1a1008"/>
-                  <rect x="8" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="32" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="68" width="8" height="8" fill="#1a1008"/>
-                  <rect x="8" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="20" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="44" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="116" y="80" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="92" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="116" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="104" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="80" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="104" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="128" y="116" width="8" height="8" fill="#1a1008"/>
-                  <rect x="56" y="128" width="8" height="8" fill="#1a1008"/>
-                  <rect x="68" y="128" width="8" height="8" fill="#1a1008"/>
-                  <rect x="92" y="128" width="8" height="8" fill="#1a1008"/>
-                  <!-- Center logo -->
-                  <rect x="58" y="58" width="24" height="24" rx="4" fill="#c07c3a"/>
-                  <text x="70" y="74" text-anchor="middle" font-size="14" fill="white" font-family="Arial" font-weight="bold">M</text>
-                </svg>
+              <div class="qris-code" style="display:flex;align-items:center;justify-content:center;">
+                <!-- Logo Mulih Coffee — QR muncul setelah klik Bayar Sekarang -->
+                <div style="width:140px;height:140px;background:#3b1f0a;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid #1a1008;box-shadow:4px 4px 0 #1a1008;">
+                  <div style="width:60px;height:60px;background:#c07c3a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;margin-bottom:8px;">
+                    <span style="font-family:var(--font-title);font-size:28px;color:white;font-weight:900;letter-spacing:-1px;">M</span>
+                  </div>
+                  <span style="font-family:var(--font-title);font-size:11px;color:#f5e9d0;letter-spacing:2px;">MULIH</span>
+                  <span style="font-family:var(--font-title);font-size:9px;color:#c07c3a;letter-spacing:1px;">COFFEE</span>
+                </div>
+              </div>
+              <div style="margin-top:10px;padding:8px 14px;background:#fff8e0;border:2px dashed #c07c3a;border-radius:8px;font-size:12px;color:#7a4a1a;font-weight:700;text-align:center;">
+                📱 Klik <strong>BAYAR SEKARANG</strong> untuk mendapatkan kode QR
               </div>
               <div class="qris-merchant">Mulih Coffee</div>
               <div class="qris-nominal" id="qrisNominal">Rp0</div>
@@ -758,12 +707,12 @@
   <!-- VERIFICATION MODAL (muncul di struk untuk transfer/qris) -->
   <!-- QRIS WAITING MODAL -->
   <div class="modal-overlay" id="qrisWaitModal">
-    <div class="modal-box" style="max-width:400px;border-radius:var(--radius-lg);overflow:hidden;padding:0;">
-      <div style="background:var(--brown);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div class="modal-box" style="max-width:400px;border-radius:var(--radius-lg);overflow:hidden;padding:0;display:flex;flex-direction:column;max-height:90vh;">
+      <div style="background:var(--brown);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div style="font-family:var(--font-title);font-size:20px;color:var(--yellow);letter-spacing:1px;">📱 QRIS PEMBAYARAN</div>
         <button onclick="cancelQrisWait()" style="background:var(--red);color:white;border:2px solid #000;border-radius:8px;padding:4px 10px;font-weight:800;font-size:13px;cursor:pointer;">Batal</button>
       </div>
-      <div style="padding:24px 20px;text-align:center;background:var(--cream);">
+      <div style="padding:24px 20px;text-align:center;background:var(--cream);overflow-y:auto;flex:1;">
         <!-- QR Code -->
         <div id="qrisWaitQR" style="display:inline-block;padding:14px;border:3px solid #1a1008;border-radius:12px;background:white;box-shadow:4px 4px 0 #1a1008;margin-bottom:14px;"></div>
         <div style="font-family:var(--font-title);font-size:15px;color:var(--brown-mid);letter-spacing:1px;margin-bottom:4px;">MULIH COFFEE</div>
