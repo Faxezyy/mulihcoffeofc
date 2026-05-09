@@ -959,9 +959,7 @@ function updateSaldoDisplay() {
   const fmt = qrisSaldo > 0 ? `Rp ${qrisSaldo.toLocaleString('id-ID')}` : 'Rp 0';
   document.getElementById('saldoDisplay').textContent = fmt;
   document.getElementById('qrisAmountDisplay').textContent = fmt;
-  document.getElementById('statSaldo').textContent = qrisSaldo >= 1000000
-    ? `${(qrisSaldo/1000000).toFixed(1)}jt`
-    : qrisSaldo >= 1000 ? `${Math.round(qrisSaldo/1000)}K` : 'Rp'+qrisSaldo;
+  // statSaldo dihandle oleh renderStats() — jangan overwrite di sini
 }
 
 function _getQrisPlaceholderSVG() {
