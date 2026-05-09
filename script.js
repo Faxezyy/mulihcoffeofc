@@ -552,7 +552,7 @@ const _supa = window.supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY
 const DB = {
   addOrder: async (order) => {
     if (!_supa) { console.warn('Supabase belum load'); return; }
-    const { error } = await _supa.from('orders').insert({
+    const insertPayload = {
       order_no:       order.orderNo,
       verify_code:    order.verifyCode,
       customer:       order.customer,
@@ -565,7 +565,11 @@ const DB = {
       admin_note:     order.adminNote,
       verified_at:    order.verifiedAt,
       created_at:     order.timestamp,
-    });
+    };
+    // Tambah saldo info kalau ada (wallet payment)
+    if (order.saldoSebelum != null) insertPayload.saldo_sebelum = order.saldoSebelum;
+    if (order.saldoSesudah != null) insertPayload.saldo_sesudah = order.saldoSesudah;
+    const { error } = await _supa.from('orders').insert(insertPayload);
     if (error) console.error('Gagal simpan order:', error);
   },
   getOrderByCode: async (code) => {
@@ -924,6 +928,12 @@ function printReceipt() { window.print(); }
 
 function closeReceipt() {
   document.getElementById('receiptModal').classList.remove('active');
+  // Pastikan cart bersih setelah tutup struk
+  if (cart && cart.length > 0) {
+    cart = []; saveCart(); updateCartBadge(); renderCart();
+  }
+  // Bersihkan pending receipt dari localStorage
+  try { localStorage.removeItem('mulihPendingReceipt'); } catch(e) {}
   showToast('🎉 Pesanan selesai! Terima kasih sudah order di Mulih Coffee!');
 }
 
@@ -1377,6 +1387,10 @@ async function _processWalletPayment({ nama, hp, orderType, alamat, catatan, sub
   };
 
   await DB.addOrder(orderData);
+
+  // Simpan receipt ke localStorage sebagai backup (berguna jika reload)
+  try { localStorage.setItem('mulihPendingReceipt', JSON.stringify(orderData)); } catch(e) {}
+
   cart = []; saveCart(); updateCartBadge(); renderCart();
   document.getElementById('checkoutModal').classList.remove('active');
   showReceipt(orderData);
@@ -1388,45 +1402,40 @@ async function _processWalletPayment({ nama, hp, orderType, alamat, catatan, sub
 document.addEventListener('DOMContentLoaded', async () => {
   _loadWalletSession();
 
-  // Cek ?showreceipt=1 → ambil order terakhir dari session user dan tampilkan struk
+  // Cek ?showreceipt=1 → ambil order terakhir dari localStorage lalu tampilkan struk
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('showreceipt') === '1') {
+    history.replaceState({}, '', window.location.pathname);
+    // Coba baca dari localStorage yang disimpan costumer.html sebelum redirect
     try {
-      const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
-      if (sess && _supa) {
-        // Ambil order terakhir customer ini
-        const { data: orders } = await _supa
-          .from('orders')
-          .select('*')
-          .eq('customer->>hp', sess.hp)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (orders && orders.length > 0) {
-          const raw = orders[0];
-          // Rekonstruksi object order untuk showReceipt
-          const orderData = {
-            orderNo:       raw.order_no,
-            verifyCode:    raw.verify_code,
-            timestamp:     raw.created_at,
-            customer:      raw.customer,
-            items:         raw.items,
-            promo:         raw.promo,
-            pricing:       raw.pricing,
-            payMethod:     raw.pay_method,
-            buktiTransfer: raw.bukti_transfer,
-            aiVerified:    true,
-            status:        raw.status,
-            adminNote:     raw.admin_note,
-            verifiedAt:    raw.verified_at,
-            saldoSebelum:  raw.saldo_sebelum,
-            saldoSesudah:  raw.saldo_sesudah,
-          };
-          showReceipt(orderData);
+      const pendingReceipt = JSON.parse(localStorage.getItem('mulihPendingReceipt') || 'null');
+      if (pendingReceipt) {
+        localStorage.removeItem('mulihPendingReceipt');
+        // Tunggu DOM siap
+        setTimeout(() => showReceipt(pendingReceipt), 300);
+      } else if (_supa) {
+        // Fallback: query Supabase
+        const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+        if (sess) {
+          const { data: orders } = await _supa
+            .from('orders')
+            .select('*')
+            .contains('customer', { hp: sess.hp })
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (orders && orders.length > 0) {
+            const raw = orders[0];
+            setTimeout(() => showReceipt({
+              orderNo: raw.order_no, verifyCode: raw.verify_code,
+              timestamp: raw.created_at, customer: raw.customer,
+              items: raw.items, promo: raw.promo, pricing: raw.pricing,
+              payMethod: raw.pay_method, buktiTransfer: raw.bukti_transfer,
+              aiVerified: true, status: raw.status, adminNote: raw.admin_note,
+              verifiedAt: raw.verified_at,
+            }), 300);
+          }
         }
       }
     } catch(e) { console.warn('showreceipt error:', e); }
-    // Bersihkan URL
-    history.replaceState({}, '', window.location.pathname);
   }
 });
