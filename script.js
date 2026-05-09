@@ -714,6 +714,19 @@ async function _startQrisWaitFlow(total) {
   // 3. Tampilkan modal
   document.getElementById('qrisWaitModal').classList.add('active');
 
+  // Simpan session info ke localStorage agar costumer.html bisa langsung bayar
+  try {
+    localStorage.setItem('mulihPendingQris', JSON.stringify({
+      sessionId: sess.id, amount: total, ts: Date.now()
+    }));
+  } catch(e) {}
+
+  // Update href tombol bayar wallet
+  const goWalletBtn = document.getElementById('qrisGoToWallet');
+  if (goWalletBtn) {
+    goWalletBtn.href = 'costumer.html?tab=scan&payqris=1';
+  }
+
   // 4. Countdown 2 menit
   let remaining = QRIS_TIMEOUT_MS;
   const countdownEl = document.getElementById('qrisCountdown');
@@ -782,6 +795,7 @@ function _setQrisWaitStatus(state) {
 
 async function _onQrisPaid(sessionData, total) {
   _setQrisWaitStatus('paid');
+  try { localStorage.removeItem('mulihPendingQris'); } catch(e) {}
 
   // Ambil pending order data
   const d = _qrisPendingOrderData;
@@ -829,6 +843,7 @@ function cancelQrisWait() {
   if (_supa && _qrisSessionId) {
     _supa.from('payment_sessions').update({ status: 'cancelled' }).eq('id', _qrisSessionId);
   }
+  try { localStorage.removeItem('mulihPendingQris'); } catch(e) {}
   _qrisSessionId = null;
   _qrisPendingOrderData = null;
   document.getElementById('qrisWaitModal').classList.remove('active');
@@ -839,7 +854,7 @@ function cancelQrisWait() {
 // ============================================
 // RECEIPT
 // ============================================
-const payMethodLabel = { cash: '💵 Tunai', transfer: '🏦 Transfer Bank', qris: '📱 QRIS' };
+const payMethodLabel = { cash: '💵 Tunai', transfer: '🏦 Transfer Bank', qris: '📱 QRIS', wallet: '⚡ Dompet Mulih' };
 const orderTypeLabel = { 'dine-in': '🪑 Dine In', takeaway: '🛍️ Takeaway', delivery: '🚴 Delivery' };
 const statusLabel    = {
   pending:  { icon: '⏳', text: 'Menunggu Verifikasi', cls: 'status-pending' },
@@ -896,9 +911,9 @@ function showReceipt(order) {
   } catch(e) {}
 
   document.getElementById('receiptPayment').innerHTML = `
-    <strong>Pembayaran:</strong> ${payMethodLabel[order.payMethod]}<br/>
-    <strong>Status:</strong> <span class="receipt-status ${sl.cls}">${sl.icon} ${sl.text}</span>
-    ${order.payMethod !== 'cash' ? `<br/><strong>Kode Verifikasi:</strong> <span class="verify-code-inline">${order.verifyCode}</span>` : ''}
+    <strong>Pembayaran:</strong> ${payMethodLabel[order.payMethod] || order.payMethod}<br/>
+    <strong>Status:</strong> <span class="receipt-status ${sl ? sl.cls : 'status-verified'}">${sl ? sl.icon : '✅'} ${sl ? sl.text : 'Terverifikasi'}</span>
+    ${(order.payMethod !== 'cash' && order.payMethod !== 'wallet') ? `<br/><strong>Kode Verifikasi:</strong> <span class="verify-code-inline">${order.verifyCode}</span>` : ''}
     ${saldoInfo}
   `;
 
@@ -1370,6 +1385,48 @@ async function _processWalletPayment({ nama, hp, orderType, alamat, catatan, sub
 // ============================================
 // INIT WALLET BAR ON PAGE LOAD
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   _loadWalletSession();
+
+  // Cek ?showreceipt=1 → ambil order terakhir dari session user dan tampilkan struk
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('showreceipt') === '1') {
+    try {
+      const sess = JSON.parse(sessionStorage.getItem('mulihSession') || 'null');
+      if (sess && _supa) {
+        // Ambil order terakhir customer ini
+        const { data: orders } = await _supa
+          .from('orders')
+          .select('*')
+          .eq('customer->>hp', sess.hp)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (orders && orders.length > 0) {
+          const raw = orders[0];
+          // Rekonstruksi object order untuk showReceipt
+          const orderData = {
+            orderNo:       raw.order_no,
+            verifyCode:    raw.verify_code,
+            timestamp:     raw.created_at,
+            customer:      raw.customer,
+            items:         raw.items,
+            promo:         raw.promo,
+            pricing:       raw.pricing,
+            payMethod:     raw.pay_method,
+            buktiTransfer: raw.bukti_transfer,
+            aiVerified:    true,
+            status:        raw.status,
+            adminNote:     raw.admin_note,
+            verifiedAt:    raw.verified_at,
+            saldoSebelum:  raw.saldo_sebelum,
+            saldoSesudah:  raw.saldo_sesudah,
+          };
+          showReceipt(orderData);
+        }
+      }
+    } catch(e) { console.warn('showreceipt error:', e); }
+    // Bersihkan URL
+    history.replaceState({}, '', window.location.pathname);
+  }
 });

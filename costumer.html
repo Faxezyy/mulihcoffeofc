@@ -2483,6 +2483,7 @@ document.getElementById('regPass2').addEventListener('keydown', e => { if(e.key=
 
 // ============================================
 // URL PARAM: ?tab=scan → langsung buka pane scan
+//            ?payqris=1 → auto-load pending QRIS dari localStorage
 // ============================================
 (function() {
   const params = new URLSearchParams(window.location.search);
@@ -2493,14 +2494,55 @@ document.getElementById('regPass2').addEventListener('keydown', e => { if(e.key=
         clearInterval(trySwitch);
         switchPane('paneScan');
         setNav('navScan');
-        setTimeout(() => {
-          const uploadArea = document.getElementById('qrisUploadArea');
-          if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 400);
+        // Jika ada pending QRIS, auto-load
+        if (params.get('payqris') === '1') {
+          setTimeout(() => _tryAutoLoadPendingQris(), 400);
+        } else {
+          setTimeout(() => {
+            const uploadArea = document.getElementById('qrisUploadArea');
+            if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 400);
+        }
       }
     }, 200);
   }
 })();
+
+async function _tryAutoLoadPendingQris() {
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem('mulihPendingQris') || 'null'); } catch(e) {}
+
+  if (!pending || !pending.sessionId) {
+    toast('⚠️ Tidak ada sesi QRIS aktif. Upload gambar QR secara manual.');
+    const uploadArea = document.getElementById('qrisUploadArea');
+    if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  // Cek apakah session masih valid (< 2 menit)
+  const age = Date.now() - (pending.ts || 0);
+  if (age > 120000) {
+    localStorage.removeItem('mulihPendingQris');
+    toast('⏰ Sesi QRIS sudah kadaluarsa. Buat order baru.');
+    return;
+  }
+
+  // Tampilkan info dan langsung ke konfirmasi bayar
+  _qrisUploadSession = { type: 'mulih-qris-pay', sessionId: pending.sessionId, amount: pending.amount };
+
+  // Scroll ke section upload
+  const uploadArea = document.getElementById('qrisUploadArea');
+  if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Set preview area sebagai "auto-detected"
+  document.getElementById('qrisUploadPreview').style.display = 'block';
+  document.getElementById('qrisPreviewImg').style.display = 'none';
+  document.getElementById('qrisReadResult').innerHTML =
+    '<span style="color:#2db86c;font-weight:800;">✅ Sesi QRIS terdeteksi!</span> Session: <code>' +
+    pending.sessionId.slice(0,12) + '...</code><br/><span style="font-size:11px;color:#888;">Dari halaman checkout Mulih Coffee</span>';
+
+  await _showQrisPayConfirm(_qrisUploadSession);
+}
 
 // ============================================
 // QRIS IMAGE UPLOAD & SCAN
@@ -2630,10 +2672,12 @@ async function confirmQrisUploadPayment() {
   statusEl.style.borderColor = '#2db86c'; statusEl.style.background = '#e8f9ee';
   document.getElementById('qrisPayStatusIcon').textContent = '✅';
   document.getElementById('qrisPayStatusText').textContent = 'Pembayaran Berhasil!';
-  document.getElementById('qrisPayStatusSub').textContent =
-    'Rp' + total.toLocaleString('id-ID') + ' telah dibayarkan. Sisa saldo: Rp' + saldoBaru.toLocaleString('id-ID');
+  document.getElementById('qrisPayStatusSub').innerHTML =
+    'Rp' + total.toLocaleString('id-ID') + ' telah dibayarkan. Sisa saldo: <strong>Rp' + saldoBaru.toLocaleString('id-ID') + '</strong>' +
+    '<br/><a href="index.html?showreceipt=1" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#3b1f0a;color:#f5e9d0;border:2px solid #1a1008;border-radius:10px;font-family:var(--font-title);font-size:13px;letter-spacing:1px;text-decoration:none;box-shadow:2px 2px 0 #1a1008;">🧾 Lihat Struk →</a>';
 
-  toast('✅ Pembayaran berhasil! Sesi ' + sessionId.slice(0,8));
+  try { localStorage.removeItem('mulihPendingQris'); } catch(e) {}
+  toast('✅ Pembayaran berhasil! Rp' + total.toLocaleString('id-ID'));
   _qrisUploadSession = null;
 }
 
