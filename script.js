@@ -569,8 +569,17 @@ const DB = {
     // Tambah saldo info kalau ada (wallet payment)
     if (order.saldoSebelum != null) insertPayload.saldo_sebelum = order.saldoSebelum;
     if (order.saldoSesudah != null) insertPayload.saldo_sesudah = order.saldoSesudah;
-    const { error } = await _supa.from('orders').insert(insertPayload);
-    if (error) console.error('Gagal simpan order:', error);
+
+    let { error } = await _supa.from('orders').insert(insertPayload);
+
+    // Kalau gagal karena kolom saldo tidak ada, coba tanpa kolom itu
+    if (error && (error.message?.includes('saldo_sebelum') || error.message?.includes('saldo_sesudah'))) {
+      delete insertPayload.saldo_sebelum;
+      delete insertPayload.saldo_sesudah;
+      const retry = await _supa.from('orders').insert(insertPayload);
+      error = retry.error;
+    }
+    if (error) console.error('Gagal simpan order:', error.message, error);
   },
   getOrderByCode: async (code) => {
     if (!_supa) return null;

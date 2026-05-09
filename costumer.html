@@ -2631,9 +2631,10 @@ async function confirmQrisUploadPayment() {
   document.getElementById('qrisPayStatusText').textContent = 'Memproses Pembayaran...';
   document.getElementById('qrisPayStatusSub').textContent = 'Mohon tunggu';
 
-  const total = Number(_qrisUploadSession.amount || 0);
+  const total     = Number(_qrisUploadSession.amount || 0);
   const sessionId = _qrisUploadSession.sessionId;
-  const user = await DB.getUser(sess.hp);
+  const user      = await DB.getUser(sess.hp);
+
   if (!user || Number(user.saldo) < total) {
     statusEl.style.borderColor = '#e63030'; statusEl.style.background = '#fde8e8';
     document.getElementById('qrisPayStatusIcon').textContent = '❌';
@@ -2642,15 +2643,16 @@ async function confirmQrisUploadPayment() {
     return;
   }
 
-  const saldoBaru = Number(user.saldo) - total;
+  const saldoSebelum = Number(user.saldo);
+  const saldoBaru    = saldoSebelum - total;
 
   // 1. Potong saldo
-  const { error } = await _supa.from('customers').update({ saldo: saldoBaru }).eq('hp', user.hp);
-  if (error) {
+  const { error: deductErr } = await _supa.from('customers').update({ saldo: saldoBaru }).eq('hp', user.hp);
+  if (deductErr) {
     statusEl.style.borderColor = '#e63030'; statusEl.style.background = '#fde8e8';
     document.getElementById('qrisPayStatusIcon').textContent = '❌';
     document.getElementById('qrisPayStatusText').textContent = 'Gagal Memproses';
-    document.getElementById('qrisPayStatusSub').textContent = error.message;
+    document.getElementById('qrisPayStatusSub').textContent = deductErr.message;
     return;
   }
 
@@ -2662,62 +2664,63 @@ async function confirmQrisUploadPayment() {
     paid_at: new Date().toISOString()
   }).eq('id', sessionId);
 
-  // 2b. Update status order yang terhubung jadi verified
-  await _supa.from('orders').update({
-    status: 'verified',
-    admin_note: '[WALLET UPLOAD] Dibayar via Upload QRIS - ' + user.hp,
-    verified_at: new Date().toISOString()
-  }).eq('verify_code', sessionId.slice(0,8).toUpperCase());
+  // 3. Buat order baru langsung di sini (status verified)
+  const now        = new Date();
+  const orderNo    = 'MC-' + now.getTime().toString().slice(-6);
+  const verifyCode = Math.random().toString(36).slice(2,8).toUpperCase();
+  const orderData  = {
+    order_no:    orderNo,
+    verify_code: verifyCode,
+    customer:    { nama: user.nama, hp: user.hp, orderType: 'dine-in', alamat: '', catatan: '' },
+    items:       [],
+    pricing:     { subtotal: total, ongkir: 0, diskon: 0, total },
+    pay_method:  'wallet',
+    bukti_transfer: null,
+    promo:       null,
+    status:      'verified',
+    admin_note:  '[WALLET UPLOAD] Dibayar via Upload QRIS - ' + user.hp,
+    verified_at: now.toISOString(),
+    created_at:  now.toISOString(),
+    saldo_sebelum: saldoSebelum,
+    saldo_sesudah: saldoBaru,
+  };
+  await _supa.from('orders').insert(orderData);
 
-  // 3. Catat transaksi
-  await DB.addTransaction(user.hp, {
-    type: 'payment',
-    desc: 'Pembayaran QRIS via Upload — Sesi ' + sessionId.slice(0,8),
-    amount: -total,
-    status: 'success',
-    ts: new Date().toISOString()
-  });
-
-  // 4. Update tampilan saldo di dashboard
-  document.getElementById('walletAmount').textContent = fmtRp(saldoBaru);
-
-  // 5. Sukses — buat receipt data & simpan ke localStorage untuk ditampilkan di index.html
-  let receiptOrderData = null;
+  // 4. Catat transaksi
   try {
-    const { data: orderRow } = await _supa
-      .from('orders')
-      .select('*')
-      .eq('order_no', sessionId.slice(0,8).toUpperCase())  // fallback
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    // Cari order yang terhubung dengan session ini
-    const { data: sessionRow } = await _supa
-      .from('payment_sessions')
-      .select('*, orders(*)')
-      .eq('id', sessionId)
-      .maybeSingle();
-
-    const rawOrder = sessionRow?.orders || null;
-
-    if (rawOrder) {
-      receiptOrderData = {
-        orderNo: rawOrder.order_no, verifyCode: rawOrder.verify_code,
-        timestamp: rawOrder.created_at, customer: rawOrder.customer,
-        items: rawOrder.items, promo: rawOrder.promo, pricing: rawOrder.pricing,
-        payMethod: rawOrder.pay_method || 'wallet', buktiTransfer: null,
-        aiVerified: true, status: 'verified', adminNote: rawOrder.admin_note,
-        verifiedAt: new Date().toISOString(),
-        saldoSebelum: Number(user.saldo) + total,
-        saldoSesudah: saldoBaru,
-      };
-      localStorage.setItem('mulihPendingReceipt', JSON.stringify(receiptOrderData));
-    }
+    await _supa.from('transactions').insert({
+      customer_hp:  user.hp,
+      type:         'payment',
+      description:  'Pembayaran QRIS Upload — Sesi ' + sessionId.slice(0,8),
+      amount:       -total,
+      status:       'success',
+      created_at:   now.toISOString()
+    });
   } catch(e) {}
 
+  // 5. Update tampilan saldo
+  document.getElementById('walletAmount').textContent = fmtRp(saldoBaru);
+
+  // 6. Simpan receipt ke localStorage untuk ditampilkan di index.html
+  const receiptForIndex = {
+    orderNo, verifyCode,
+    timestamp:    now.toISOString(),
+    customer:     { nama: user.nama, hp: user.hp, orderType: 'dine-in', alamat: '', catatan: '' },
+    items:        [],
+    promo:        null,
+    pricing:      { subtotal: total, ongkir: 0, diskon: 0, total },
+    payMethod:    'wallet',
+    buktiTransfer: null,
+    aiVerified:   true,
+    status:       'verified',
+    adminNote:    '[WALLET UPLOAD] Dibayar via Upload QRIS',
+    verifiedAt:   now.toISOString(),
+    saldoSebelum, saldoSesudah: saldoBaru,
+  };
+  try { localStorage.setItem('mulihPendingReceipt', JSON.stringify(receiptForIndex)); } catch(e) {}
   try { localStorage.removeItem('mulihPendingQris'); } catch(e) {}
 
+  // 7. Tampilkan sukses + tombol lihat struk
   statusEl.style.borderColor = '#2db86c'; statusEl.style.background = '#e8f9ee';
   document.getElementById('qrisPayStatusIcon').textContent = '✅';
   document.getElementById('qrisPayStatusText').textContent = 'Pembayaran Berhasil!';
