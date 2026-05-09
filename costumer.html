@@ -819,16 +819,16 @@
       </div>
 
       <!-- Go to Order Banner -->
-      <a href="index.html#order" class="goto-order pop-btn">
+      <a href="index.html#menu" class="goto-order pop-btn">
         <div class="goto-order-left">
-          <div class="goto-order-label">ORDER SEKARANG!</div>
-          <div class="goto-order-sub">Bayar pakai saldo Mulih Coffee kamu ☕</div>
+          <div class="goto-order-label">LIHAT MENU</div>
+          <div class="goto-order-sub">Pilih menu & bayar pakai saldo Mulih Coffee ☕</div>
         </div>
         <div class="goto-order-arrow">→</div>
       </a>
 
       <!-- Top Up Request -->
-      <div class="section-card">
+      <div class="section-card" id="topupSection">
         <div class="section-head">
           <div class="section-head-title">💰 TOP UP SALDO</div>
         </div>
@@ -2452,6 +2452,15 @@ function switchPane(id) {
   // Scroll ke atas setiap ganti tab
   const content = document.querySelector('.dash-content');
   if (content) content.scrollTop = 0;
+  // Reset state QRIS upload kalau buka paneScan secara manual
+  if (id === 'paneScan') {
+    const payConfirm = document.getElementById('qrisPayConfirm');
+    const preview = document.getElementById('qrisUploadPreview');
+    const payStatus = document.getElementById('qrisPayStatus');
+    if (payConfirm) payConfirm.style.display = 'none';
+    if (preview) preview.style.display = 'none';
+    if (payStatus) payStatus.style.display = 'none';
+  }
 }
 
 function setNav(id) {
@@ -2509,6 +2518,21 @@ document.getElementById('regPass2').addEventListener('keydown', e => { if(e.key=
             if (uploadArea) uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 400);
         }
+      }
+    }, 200);
+  }
+
+  if (params.get('scroll') === 'topup') {
+    const tryScrollTopup = setInterval(() => {
+      const dashScreen = document.getElementById('dashScreen');
+      if (dashScreen && dashScreen.classList.contains('active')) {
+        clearInterval(tryScrollTopup);
+        switchPane('paneWallet');
+        setNav('navWallet');
+        setTimeout(() => {
+          const topupEl = document.getElementById('topupSection');
+          if (topupEl) topupEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
       }
     }, 200);
   }

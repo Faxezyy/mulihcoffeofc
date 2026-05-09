@@ -944,6 +944,11 @@ function closeReceipt() {
   // Bersihkan pending receipt dari localStorage
   try { localStorage.removeItem('mulihPendingReceipt'); } catch(e) {}
   showToast('🎉 Pesanan selesai! Terima kasih sudah order di Mulih Coffee!');
+  // Langsung scroll ke menu supaya bisa order lagi
+  setTimeout(() => {
+    const menuSection = document.querySelector('#menu');
+    if (menuSection) menuSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 300);
 }
 
 document.getElementById('receiptModal').addEventListener('click', (e) => {
