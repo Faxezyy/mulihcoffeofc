@@ -581,19 +581,28 @@
             <div class="qris-box">
               <div class="qris-title">Scan QR untuk Bayar</div>
               <div class="qris-code" style="display:flex;align-items:center;justify-content:center;">
-                <!-- Logo Mulih Coffee — QR muncul setelah klik Bayar Sekarang -->
+                <!-- Logo cangkir kopi — QR muncul setelah klik Bayar Sekarang -->
                 <div style="width:140px;height:140px;background:#3b1f0a;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid #1a1008;box-shadow:4px 4px 0 #1a1008;">
-                  <div style="width:60px;height:60px;background:#c07c3a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;margin-bottom:8px;">
-                    <span style="font-family:var(--font-title);font-size:28px;color:white;font-weight:900;letter-spacing:-1px;">M</span>
-                  </div>
-                  <span style="font-family:var(--font-title);font-size:11px;color:#f5e9d0;letter-spacing:2px;">MULIH</span>
-                  <span style="font-family:var(--font-title);font-size:9px;color:#c07c3a;letter-spacing:1px;">COFFEE</span>
+                  <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- uap -->
+                    <path d="M24 14 Q26 8 24 4" stroke="#f5e9d0" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                    <path d="M36 14 Q38 8 36 4" stroke="#f5e9d0" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                    <path d="M48 14 Q50 8 48 4" stroke="#f5e9d0" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                    <!-- cangkir -->
+                    <path d="M14 20 H58 L52 56 H20 Z" fill="#c07c3a" stroke="#fff" stroke-width="2"/>
+                    <!-- handle -->
+                    <path d="M58 28 Q70 28 70 38 Q70 48 58 48" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                    <!-- tatakan -->
+                    <rect x="10" y="58" width="52" height="6" rx="3" fill="#c07c3a" stroke="#fff" stroke-width="1.5"/>
+                    <!-- highlight -->
+                    <ellipse cx="30" cy="36" rx="5" ry="9" fill="rgba(255,255,255,0.15)" transform="rotate(-10 30 36)"/>
+                  </svg>
+                  <span style="font-family:var(--font-title);font-size:10px;color:#f5e9d0;letter-spacing:2px;margin-top:4px;">MULIH COFFEE</span>
                 </div>
               </div>
               <div style="margin-top:10px;padding:8px 14px;background:#fff8e0;border:2px dashed #c07c3a;border-radius:8px;font-size:12px;color:#7a4a1a;font-weight:700;text-align:center;">
                 📱 Klik <strong>BAYAR SEKARANG</strong> untuk mendapatkan kode QR
               </div>
-              <div class="qris-merchant">Mulih Coffee</div>
               <div class="qris-nominal" id="qrisNominal">Rp0</div>
               <div class="qris-note">Scan dengan GoPay, OVO, Dana, atau m-Banking</div>
             </div>
